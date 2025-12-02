@@ -5,7 +5,7 @@
 #===============================================================================
 # Description: Main entry point that loads all utility modules
 # Author: dolpa (https://dolpa.me)
-# Version: 1.0
+# Version: main
 # License: Unlicense
 # Usage: source this file in your bash scripts to load all utilities
 #===============================================================================

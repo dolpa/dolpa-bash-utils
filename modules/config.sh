@@ -5,7 +5,7 @@
 #===============================================================================
 # Description: Configuration constants, variables, and color definitions
 # Author: dolpa (https://dolpa.me)
-# Version: 1.0
+# Version: main
 # License: Unlicense
 #===============================================================================
 

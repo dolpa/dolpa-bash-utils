@@ -17,4 +17,4 @@ repos:
     rev: v0.10.0
     hooks:
       - id: shellcheck
-        args: ["--severity=warning"]  # Lint shell scripts, show errors and warnings
+        args: ["--severity=note"]  # Lint shell scripts, show errors and warnings

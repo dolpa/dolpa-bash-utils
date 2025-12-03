@@ -175,7 +175,7 @@ jobs:
       uses: ludeeus/action-shellcheck@master
       with:
         severity: error
-        scandir: '.' 
+        scandir: '.'
         ignore_paths: bats-core-master test_helper 
         
     - name: Check for secrets

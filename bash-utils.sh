@@ -17,7 +17,7 @@ fi
 readonly BASH_UTILS_LOADED="true"
 
 # Get the directory where this script is located
-BASH_UTILS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASH_UTILS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/modules/"
 
 #===============================================================================
 # LOAD UTILITY MODULES

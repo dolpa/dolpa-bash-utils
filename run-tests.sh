@@ -20,10 +20,12 @@ TEST_DIR="${SCRIPT_DIR}/tests"
 # 2️⃣  Colour handling (only if we have a real terminal)
 # --------------------------------------------------------------------
 if [[ -t 1 ]] && [[ "${TERM:-}" != "dumb" ]] && [[ "${NO_COLOR:-}" != "1" ]]; then
+    # shellcheck disable=SC2034
     readonly COLOR_RED='\033[0;31m'
     readonly COLOR_GREEN='\033[0;32m'
     readonly COLOR_YELLOW='\033[1;33m'
     readonly COLOR_BLUE='\033[0;34m'
+    # shellcheck disable=SC2034
     readonly COLOR_BOLD='\033[1m'
     readonly COLOR_RESET='\033[0m'
 else

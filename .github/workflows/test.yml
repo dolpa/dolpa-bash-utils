@@ -174,8 +174,9 @@ jobs:
     - name: Run shellcheck
       uses: ludeeus/action-shellcheck@master
       with:
-        scandir: '.'
-        ignore_paths: bats-core-master test_helper
+        severity: error
+        scandir: '.' 
+        ignore_paths: bats-core-master test_helper 
         
     - name: Check for secrets
       uses: trufflesecurity/trufflehog@main

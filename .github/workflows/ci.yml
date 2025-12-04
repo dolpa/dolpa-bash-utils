@@ -2,7 +2,7 @@ name: Tests & Release
 
 on:
   push:
-    branches: [ main, feature/*, release/*]
+    branches: [ main, feature/*, release/*, fix/* ]
   pull_request:
     branches: [ main ]
 
@@ -182,8 +182,8 @@ jobs:
       uses: trufflesecurity/trufflehog@main
       with:
         path: ./
-        base: main
-        head: HEAD
+        base: ""
+        head: ${{ github.ref_name }}
         extra_args: --debug --only-verified
 
 

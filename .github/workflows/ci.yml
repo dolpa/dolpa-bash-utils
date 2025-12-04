@@ -192,11 +192,7 @@ jobs:
   # -------------------------------------------------
   release:
     # Run only on pushes to the *release* branch (or any branch you prefer)
-    if: (
-      github.ref == 'refs/heads/main' ||
-      github.ref == 'refs/heads/release' ||
-      github.ref == 'refs/heads/fix/*'
-    ) && success()
+    if: ( github.ref == 'refs/heads/main' || github.ref == 'refs/heads/release' || github.ref == 'refs/heads/fix/*' ) && success()
     needs:
       - test
       - compatibility-test

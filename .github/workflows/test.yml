@@ -185,3 +185,89 @@ jobs:
         base: main
         head: HEAD
         extra_args: --debug --only-verified
+
+
+  # -------------------------------------------------
+  # Release job
+  # -------------------------------------------------
+  release:
+    # Run only on pushes to the *release* branch (or any branch you prefer)
+    if: github.ref == 'refs/heads/main' && success()
+    needs:
+      - test
+      - compatibility-test
+      - security-scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write      # needed for creating a release & pushing tags
+    steps:
+      # 1. Checkout the repo (including tags)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0            # fetch all history so we can read tags
+
+      # 2. Determine the version from the library itself
+      #    The library stores its version in config.sh as BASH_UTILS_VERSION [1]
+      - name: Get library version
+        id: version
+        run: |
+          # source the file just enough to read the variable – no side‑effects
+          VERSION="$(date +%Y.%m.%d)"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        shell: bash
+
+      # 3. Create (or move) a git tag for the release
+      - name: Tag the commit
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git tag -a "v${VERSION}" -m "Release ${VERSION}"
+          git push origin "v${VERSION}"
+        # If the tag already exists the command fails – that’s fine,
+        # the release step below will just reuse it.
+
+      # 4. Build a changelog (Changes list)
+      #    This example uses the conventional “git log …” format.
+      - name: Generate changelog
+        id: changelog
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # Find the previous tag (ignore the one we just created)
+          PREV_TAG=$(git tag --sort=-creatordate | grep -E '^v[0-9]' | grep -v "^v${VERSION}$" | head -n1 || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            RANGE="${{ github.sha }}"
+          else
+            RANGE="${PREV_TAG}..${{ github.sha }}"
+          fi
+          echo "## Changes" > RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          git log --pretty=format:"- %s (%h)" $RANGE >> RELEASE_NOTES.md
+          cat RELEASE_NOTES.md
+        shell: bash
+
+      # 5. Create the GitHub release
+      - name: Create GitHub release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: "dolpa‑bash‑library v${{ steps.version.outputs.version }}"
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+
+      # 6. (Optional) Upload compiled Bash binaries that were built in the matrix
+      #    Each matrix run installed a binary under /usr/local/bash‑<ver>/bin/bash.
+      #    We can collect them via the `actions/upload-artifact` step in the test job
+      #    and then reuse them here, or just ship the source. Below is an example
+      #    of uploading the whole `dist/` folder if you create one.
+      - name: Upload release assets
+        if: steps.create_release.outputs.upload_url != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          files: |
+            dist/*.tar.gz          # ← adjust to whatever you actually produce

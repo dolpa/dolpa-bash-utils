@@ -1,8 +1,8 @@
-name: Tests
+name: Tests & Release
 
 on:
   push:
-    branches: [ feature/*, release/* ]
+    branches: [ main, feature/*, release/*]
   pull_request:
     branches: [ main ]
 

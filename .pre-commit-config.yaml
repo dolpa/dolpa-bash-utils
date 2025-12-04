@@ -1,0 +1,20 @@
+---
+# .pre-commit-config.yaml
+# This file configures pre-commit hooks to enforce code quality and consistency before commits.
+
+repos:
+  # 1. General checks using pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace        # Remove trailing whitespace from all files
+      - id: end-of-file-fixer          # Ensure files end with a newline
+      - id: check-merge-conflict       # Detect unresolved merge conflict markers
+      - id: check-yaml                 # Validate YAML file syntax
+
+  # 2. Shell Scripts linting with ShellCheck
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.10.0
+    hooks:
+      - id: shellcheck
+        args: ["--severity=warnings"]  # Lint shell scripts, show errors and warnings

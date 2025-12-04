@@ -287,6 +287,26 @@ source lib/bash-utils.sh
 bash_utils_info
 ```
 
+## Running tests in Docker
+
+You can run the full test suite in an isolated Docker container using the provided `Dockerfile`.
+
+### Build the Docker image
+
+From the repository root, build the image:
+
+```bash
+docker build -t bash-utils .
+```
+
+### Run the tests in the container
+
+Run the container (it will execute `run-tests.sh` and exit with the test result):
+
+```bash
+docker run -ti --rm bash-utils
+```
+
 ## Contributing
 
 1. Fork the repository

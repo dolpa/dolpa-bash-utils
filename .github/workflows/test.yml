@@ -1,0 +1,187 @@
+name: Tests
+
+on:
+  push:
+    branches: [ feature/*, release/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        bash-version: ['4.4', '5.0', '5.1', 'latest']
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install Bash ${{ matrix.bash-version }}
+      run: |
+        # If "latest" → use system bash
+        if [ "${{ matrix.bash-version }}" = "latest" ]; then
+          echo "Using system default Bash:"
+          bash --version
+          exit 0
+        fi
+
+        sudo apt-get update
+        sudo apt-get install -y build-essential wget
+
+        echo "Downloading Bash ${{ matrix.bash-version }}..."
+        wget https://ftp.gnu.org/gnu/bash/bash-${{ matrix.bash-version }}.tar.gz
+        tar -xzf bash-${{ matrix.bash-version }}.tar.gz
+        cd bash-${{ matrix.bash-version }}
+
+        echo "Compiling Bash..."
+        ./configure --prefix=/usr/local/bash-${{ matrix.bash-version }}
+        make
+        sudo make install
+
+        # Replace system bash temporarily
+        sudo ln -sf /usr/local/bash-${{ matrix.bash-version }}/bin/bash /usr/local/bin/bash
+
+        echo "Installed Bash version:"
+        /usr/local/bin/bash --version
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          curl \
+          wget \
+          bc \
+          unzip \
+          git
+          
+    - name: Install bats-core
+      run: |
+        if [[ ! -d bats-core-master ]]; then
+          echo "==> Downloading bats-core"
+          curl -L -O https://github.com/bats-core/bats-core/archive/refs/heads/master.zip
+          unzip master.zip
+        fi
+        
+        echo "==> Installing bats-core"
+        cd bats-core-master
+        sudo ./install.sh /usr/local/
+        
+        # Verify installation
+        bats --version
+        
+    - name: Verify test environment
+      run: |
+        echo "==> Verifying test environment"
+        echo "Bash version: $(bash --version | head -n1)"
+        echo "Date command: $(date --version | head -n1 || echo 'BSD date')"
+        echo "BC available: $(command -v bc && bc --version | head -n1 || echo 'BC not available')"
+        echo "Bats version: $(bats --version)"
+        echo "Working directory: $(pwd)"
+        echo "Files present:"
+        ls -la
+        
+    - name: Run complete test suite
+      run: |
+        echo "==> Running complete test suite"
+        bats tests/*.bats
+
+  test-docker:
+    runs-on: ubuntu-latest
+    if: false # Disabled by default; enable if Docker tests are needed
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Build Docker image
+      run: |
+        if [[ -f Dockerfile ]]; then
+          echo "==> Building Docker test image"
+          docker build -t hhgttg-test .
+        else
+          echo "No Dockerfile found, skipping Docker tests"
+        fi
+        
+    - name: Run tests in Docker
+      run: |
+        if docker images | grep -q hhgttg-test; then
+          echo "==> Running tests in Docker container"
+          docker run -t --rm hhgttg-test
+        else
+          echo "Docker image not available, skipping Docker tests"
+        fi
+
+  compatibility-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-22.04, ubuntu-24.04, macos-latest]
+        
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies (Ubuntu)
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y curl wget bc unzip
+        
+    - name: Install dependencies (macOS)
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        brew update || true
+        brew install bash bc curl wget || true
+        
+    - name: Install bats-core
+      run: |
+        curl -L -O https://github.com/bats-core/bats-core/archive/refs/heads/master.zip
+        unzip master.zip
+        cd bats-core-master
+        sudo ./install.sh /usr/local/ || ./install.sh "$HOME/.local"
+        
+        # Add to PATH if installed in home directory
+        if [[ -f "$HOME/.local/bin/bats" ]]; then
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        fi
+        
+    - name: Verify environment
+      run: |
+        echo "OS: ${{ matrix.os }}"
+        echo "Bash version: $(bash --version | head -n1)"
+        echo "Bats version: $(bats --version || echo 'Bats not found in PATH')"
+        which bats || echo "Bats location not found"
+        
+    - name: Run core tests
+      if: false # Disabled by default; enable if Docker tests are needed
+      run: |
+        # Run essential tests that should work on all platforms
+        echo "==> Running core compatibility tests"
+        
+        bats test/test_spinner.bats || echo "Spinner tests failed on ${{ matrix.os }}"
+        bats test/test_timers.bats || echo "Timer tests failed on ${{ matrix.os }}"
+        
+        echo "Compatibility tests completed for ${{ matrix.os }}"
+
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Run shellcheck
+      uses: ludeeus/action-shellcheck@master
+      with:
+        severity: error
+        scandir: '.'
+        ignore_paths: bats-core-master test_helper 
+        
+    - name: Check for secrets
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+        extra_args: --debug --only-verified

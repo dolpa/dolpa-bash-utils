@@ -17,18 +17,24 @@ fi
 readonly BASH_UTILS_LOADED="true"
 
 # Get the directory where this script is located
-BASH_UTILS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASH_UTILS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/modules/"
 
 #===============================================================================
 # LOAD UTILITY MODULES
 #===============================================================================
 
 # Source all utility modules in dependency order
+# shellcheck source=./modules/config.sh
 source "${BASH_UTILS_DIR}/config.sh"
+# shellcheck source=./modules/logging.sh
 source "${BASH_UTILS_DIR}/logging.sh"
+# shellcheck source=./modules/validation.sh
 source "${BASH_UTILS_DIR}/validation.sh"
+# shellcheck source=./modules/files.sh
 source "${BASH_UTILS_DIR}/files.sh"
+# shellcheck source=./modules/system.sh
 source "${BASH_UTILS_DIR}/system.sh"
+# shellcheck source=./modules/utils.sh
 source "${BASH_UTILS_DIR}/utils.sh"
 
 #===============================================================================

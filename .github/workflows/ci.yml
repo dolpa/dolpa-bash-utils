@@ -192,7 +192,11 @@ jobs:
   # -------------------------------------------------
   release:
     # Run only on pushes to the *release* branch (or any branch you prefer)
-    if: github.ref == 'refs/heads/main' && success()
+    if: (
+      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/release' ||
+      github.ref == 'refs/heads/fix/*'
+    ) && success()
     needs:
       - test
       - compatibility-test
@@ -218,7 +222,13 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
         shell: bash
 
-      # 3. Create (or move) a git tag for the release
+      # 3. Configure Git identity
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+      # 4. Create (or move) a git tag for the release
       - name: Tag the commit
         env:
           VERSION: ${{ steps.version.outputs.version }}
@@ -228,7 +238,7 @@ jobs:
         # If the tag already exists the command fails – that’s fine,
         # the release step below will just reuse it.
 
-      # 4. Build a changelog (Changes list)
+      # 5. Build a changelog (Changes list)
       #    This example uses the conventional “git log …” format.
       - name: Generate changelog
         id: changelog

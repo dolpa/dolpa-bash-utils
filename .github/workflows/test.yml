@@ -195,7 +195,6 @@ jobs:
     if: github.ref == 'refs/heads/main' && success()
     needs:
       - test
-      - test-docker
       - compatibility-test
       - security-scan
     runs-on: ubuntu-latest

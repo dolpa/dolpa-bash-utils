@@ -50,7 +50,7 @@ This directory contains comprehensive BATS (Bash Automated Testing System) tests
 
 ### Helper Files
 
-- **`test_helper.bash`** - Common test helper functions
+- **`test_helper.sh`** - Common test helper functions
   - Temporary file/directory creation
   - Output formatting validation
   - Test environment setup/cleanup

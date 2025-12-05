@@ -194,7 +194,8 @@ jobs:
   # -------------------------------------------------
   release:
     # Run only on pushes to the *release* branch (or any branch you prefer)
-    if: ( github.ref_name == 'refs/heads/main' || github.ref_name == 'refs/heads/release' || github.ref_name == 'refs/heads/fix/*' ) && success()
+    if: ( github.ref_name == 'refs/heads/main' || startsWith(github.ref_name,'refs/heads/release/') || startsWith(github.ref_name, 'refs/heads/fix/')) && success()
+
     needs:
       - test
       - compatibility-test
@@ -214,8 +215,13 @@ jobs:
       - name: Get library version
         id: version
         run: |
-          # source the file just enough to read the variable – no side‑effects
-          VERSION="$(date +%Y.%m.%d)"
+          # new versioning scheme: date-based
+          if [[ "${{github.ref_name }}" == "refs/heads/main" ]]; then
+            VERSION="v$(date +'%Y.%m.%d')"
+          else
+            VERSION="v$(date +'%Y.%m.%d.%H%M')"
+          fi
+          echo "Determined version: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "version=$VERSION" >> $GITHUB_OUTPUT
         shell: bash

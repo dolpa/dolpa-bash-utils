@@ -79,6 +79,8 @@ jobs:
         echo "Bats version: $(bats --version)"
         echo "Working directory: $(pwd)"
         echo "Files present:"
+        echo "GH ref name. : ${{github.ref_name }}"
+        echo "GH ref.      : ${{github.ref }}"
         ls -la
         
     - name: Run complete test suite

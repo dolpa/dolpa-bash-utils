@@ -237,8 +237,8 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          git tag -a "v${VERSION}" -m "Release ${VERSION}"
-          git push origin "v${VERSION}"
+          git tag -a "${VERSION}" -m "Release ${VERSION}"
+          git push origin "${VERSION}"
         # If the tag already exists the command fails – that’s fine,
         # the release step below will just reuse it.
 
@@ -250,7 +250,7 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           # Find the previous tag (ignore the one we just created)
-          PREV_TAG=$(git tag --sort=-creatordate | grep -E '^v[0-9]' | grep -v "^v${VERSION}$" | head -n1 || echo "")
+          PREV_TAG=$(git tag --sort=-creatordate | grep -E '^v[0-9]' | grep -v "^${VERSION}$" | head -n1 || echo "")
           if [ -z "$PREV_TAG" ]; then
             RANGE="${{ github.sha }}"
           else
@@ -262,18 +262,29 @@ jobs:
           cat RELEASE_NOTES.md
         shell: bash
 
-      # 5. Create the GitHub release
+      # 6. Build a zip Archive of the release
+      - name: Create release zip
+        run: |
+          mkdir -p dist
+          zip -r dist/bash-utils-${VERSION}.zip \
+            README.md \
+            RELEASE_NOTES.md \
+            LICENSE \
+            modules \
+            bash-utils.sh
+
+      # 7. Create the GitHub release
       - name: Create GitHub release
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: "dolpa‑bash‑library v${{ steps.version.outputs.version }}"
+          tag_name: ${{ steps.version.outputs.version }}
+          name: "dolpa‑bash‑library ${{ steps.version.outputs.version }}"
           body_path: RELEASE_NOTES.md
           draft: false
           prerelease: false
 
-      # 6. (Optional) Upload compiled Bash binaries that were built in the matrix
+      # 8. (Optional) Upload compiled Bash binaries that were built in the matrix
       #    Each matrix run installed a binary under /usr/local/bash‑<ver>/bin/bash.
       #    We can collect them via the `actions/upload-artifact` step in the test job
       #    and then reuse them here, or just ship the source. Below is an example
@@ -284,4 +295,4 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           files: |
-            dist/*.tar.gz          # ← adjust to whatever you actually produce
+            dist/*.zip

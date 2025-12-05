@@ -79,6 +79,8 @@ jobs:
         echo "Bats version: $(bats --version)"
         echo "Working directory: $(pwd)"
         echo "Files present:"
+        echo "GH ref name. : ${{github.ref_name }}"
+        echo "GH ref.      : ${{github.ref }}"
         ls -la
         
     - name: Run complete test suite
@@ -192,14 +194,21 @@ jobs:
   # -------------------------------------------------
   release:
     # Run only on pushes to the *release* branch (or any branch you prefer)
-    if: github.ref == 'refs/heads/main' && success()
+    if: >
+      (github.ref_name == 'main' ||
+      startsWith(github.ref_name, 'release/'))
+      && success()
+
     needs:
       - test
       - compatibility-test
       - security-scan
+
     runs-on: ubuntu-latest
+
     permissions:
       contents: write      # needed for creating a release & pushing tags
+
     steps:
       # 1. Checkout the repo (including tags)
       - name: Checkout repository
@@ -212,23 +221,38 @@ jobs:
       - name: Get library version
         id: version
         run: |
-          # source the file just enough to read the variable – no side‑effects
-          VERSION="$(date +%Y.%m.%d)"
+          # new versioning scheme: date-based
+          if [[ "${{github.ref_name }}" == "refs/heads/main" ]]; then
+            VERSION="v$(date +'%Y.%m.%d')"
+          else
+            VERSION="v$(date +'%Y.%m.%d.%H%M')"
+          fi
+
+          echo "Determined version: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "version=$VERSION" >> $GITHUB_OUTPUT
         shell: bash
 
-      # 3. Create (or move) a git tag for the release
+      # 3. Configure Git identity
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+      # 4. Create (or move) a git tag for the release
       - name: Tag the commit
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          git tag -a "v${VERSION}" -m "Release ${VERSION}"
-          git push origin "v${VERSION}"
-        # If the tag already exists the command fails – that’s fine,
-        # the release step below will just reuse it.
+          # If tag exists, skip creation
+          if git rev-parse "${VERSION}" >/dev/null 2>&1; then
+            echo "Tag ${VERSION} already exists. Skipping creation."
+          else
+            git tag -a "${VERSION}" -m "Release ${VERSION}"
+            git push origin "${VERSION}"
+          fi
 
-      # 4. Build a changelog (Changes list)
+      # 5. Build a changelog (Changes list)
       #    This example uses the conventional “git log …” format.
       - name: Generate changelog
         id: changelog
@@ -236,7 +260,7 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           # Find the previous tag (ignore the one we just created)
-          PREV_TAG=$(git tag --sort=-creatordate | grep -E '^v[0-9]' | grep -v "^v${VERSION}$" | head -n1 || echo "")
+          PREV_TAG=$(git tag --sort=-creatordate | grep -E '^v[0-9]' | grep -v "^${VERSION}$" | head -n1 || echo "")
           if [ -z "$PREV_TAG" ]; then
             RANGE="${{ github.sha }}"
           else
@@ -248,26 +272,27 @@ jobs:
           cat RELEASE_NOTES.md
         shell: bash
 
-      # 5. Create the GitHub release
-      - name: Create GitHub release
-        id: create_release
+      # 6. Build a zip Archive of the release
+      - name: Create release zip
+        run: |
+          mkdir -p dist
+          zip -r dist/bash-utils-${VERSION}.zip \
+            README.md \
+            RELEASE_NOTES.md \
+            LICENSE \
+            modules \
+            bash-utils.sh
+
+      # 7. Create GitHub release + upload ZIP asset in the same step
+      - name: Create GitHub Release & Upload Assets
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: "dolpa‑bash‑library v${{ steps.version.outputs.version }}"
+          tag_name: ${{ steps.version.outputs.version }}
+          name: "bash-utils ${{ steps.version.outputs.version }}"
           body_path: RELEASE_NOTES.md
           draft: false
           prerelease: false
-
-      # 6. (Optional) Upload compiled Bash binaries that were built in the matrix
-      #    Each matrix run installed a binary under /usr/local/bash‑<ver>/bin/bash.
-      #    We can collect them via the `actions/upload-artifact` step in the test job
-      #    and then reuse them here, or just ship the source. Below is an example
-      #    of uploading the whole `dist/` folder if you create one.
-      - name: Upload release assets
-        if: steps.create_release.outputs.upload_url != ''
-        uses: softprops/action-gh-release@v2
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          files: |
-            dist/*.tar.gz          # ← adjust to whatever you actually produce
+          files: dist/*.zip
+          overwrite_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

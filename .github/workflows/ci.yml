@@ -222,7 +222,7 @@ jobs:
         id: version
         run: |
           # new versioning scheme: date-based
-          if [[ "${{github.ref_name }}" == "refs/heads/main" ]]; then
+          if [[ "${{github.ref }}" == "refs/heads/main" ]]; then
             VERSION="v$(date +'%Y.%m.%d')"
           else
             VERSION="v$(date +'%Y.%m.%d.%H%M')"

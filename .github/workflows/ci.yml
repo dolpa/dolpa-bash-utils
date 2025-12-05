@@ -194,7 +194,7 @@ jobs:
   # -------------------------------------------------
   release:
     # Run only on pushes to the *release* branch (or any branch you prefer)
-    if: ( github.ref_name == 'refs/heads/main' || startsWith(github.ref_name,'refs/heads/release/') || startsWith(github.ref_name, 'refs/heads/fix/')) && success()
+    if: ( github.ref == 'refs/heads/main' || startsWith(github.ref_name,'refs/heads/release/') || startsWith(github.ref_name, 'refs/heads/fix/')) && success()
 
     needs:
       - test

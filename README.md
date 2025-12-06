@@ -207,6 +207,54 @@ COLOR_RESET, COLOR_NC (No Color)
 RED, GREEN, YELLOW, BLUE, NC
 ```
 
+## String Utilities (strings.sh)
+
+The `strings.sh` module provides a suite of functions for manipulating and analyzing strings and words in bash scripts.
+
+### Features
+- Whitespace trimming
+- Case conversion (upper/lower/title)
+- Substring extraction
+- Word counting and selection
+- String splitting/joining
+- Pattern matching (contains, startswith, endswith)
+- String replacement
+- Repeating strings
+
+### API Reference
+| Function | Description |
+|----------|-------------|
+| `str_trim(s)` | Remove leading/trailing whitespace |
+| `str_upper(s)` | Convert string to upper-case |
+| `str_lower(s)` | Convert string to lower-case |
+| `str_length(s)` | Get length of string |
+| `str_contains(s, pat)` | Test if string contains substring |
+| `str_startswith(s, prefix)` | Test if string starts with prefix |
+| `str_endswith(s, suffix)` | Test if string ends with suffix |
+| `str_replace(s, search, replace)` | Replace all occurrences of search with replace |
+| `str_split(s, delim)` | Split string into lines by delimiter |
+| `str_join(delim, ...words)` | Join words with delimiter |
+| `str_word_count(s)` | Count words in string |
+| `str_word_occurrences(s, word)` | Count occurrences of word |
+| `str_nth_word(s, n)` | Get the n-th word (1-based) |
+| `str_substring(s, offset, [length])` | Get substring from offset (and optional length) |
+| `str_repeat(s, n)` | Repeat string n times |
+| `str_title(s)` | Convert string to title-case |
+
+### Example Usage
+```bash
+source "./modules/strings.sh"
+
+trimmed=$(str_trim "   hello world   ")
+upper=$(str_upper "abc")
+lower=$(str_lower "ABC")
+length=$(str_length "hello")
+contains=$(str_contains "foo bar" "bar")
+joined=$(str_join "," "a" "b" "c")
+words=$(str_split "one two three" " ")
+title=$(str_title "hello world from bash")
+```
+
 ## Examples
 
 ### Script Template

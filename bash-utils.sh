@@ -36,6 +36,8 @@ source "${BASH_UTILS_DIR}/files.sh"
 source "${BASH_UTILS_DIR}/system.sh"
 # shellcheck source=./modules/utils.sh
 source "${BASH_UTILS_DIR}/utils.sh"
+# shellcheck source=./modules/strings.sh
+source "${BASH_UTILS_DIR}/strings.sh"
 
 #===============================================================================
 # LIBRARY INFORMATION

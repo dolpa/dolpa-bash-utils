@@ -1,15 +1,20 @@
 #!/usr/bin/env bats
 
-# Test config.sh module
+#===============================================================================
+# BATS Tests for config.sh Module
+#===============================================================================
+# Tests configuration constants, color definitions, and module loading behavior
+#===============================================================================
 
 setup() {
-    # Load the config module
+    # Load the config module for testing
+    # This initializes all color constants and configuration variables
     source "${BATS_TEST_DIRNAME}/../modules/config.sh"
 }
 
 teardown() {
-    # Clean up any environment variables set during tests
-    # Note: Cannot unset readonly variables like BASH_UTILS_CONFIG_LOADED
+    # Clean up environment variables modified during tests
+    # Note: Readonly variables cannot be unset, so we ignore failures
     unset NO_COLOR || true
     unset TERM || true
 }

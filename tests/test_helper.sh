@@ -1,8 +1,16 @@
 #!/bin/bash
 
-# BATS test helper functions
+#===============================================================================
+# BATS Test Helper Functions
+#===============================================================================
+# Common utilities and helper functions used across all test files
+#===============================================================================
 
-# Helper function to create temporary files for testing
+# Create a temporary file with optional content for testing
+# Usage: temp_file=$(create_temp_file "test content")
+# Arguments:
+#   $1 - optional content for the file (default: "test content")
+# Returns: path to created temporary file
 create_temp_file() {
     local content="${1:-test content}"
     local temp_file
@@ -11,7 +19,9 @@ create_temp_file() {
     echo "$temp_file"
 }
 
-# Helper function to create temporary directories for testing
+# Create a temporary directory for testing
+# Usage: temp_dir=$(create_temp_dir)
+# Returns: path to created temporary directory
 create_temp_dir() {
     mktemp -d
 }

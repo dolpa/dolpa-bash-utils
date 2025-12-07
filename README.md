@@ -38,6 +38,7 @@ bash-utils/
 - **Input Validation**: Functions for validating files, directories, emails, URLs, system names, etc.
 - **System Detection**: Auto-detect system information using DMI data
 - **File Operations**: Backup creation, directory management, path resolution
+- **FileSystem Operations**: the most common file‑system operations that a Bash utility library needs
 - **String Manipulation**: Comprehensive string processing utilities including case conversion, trimming, and validation
 - **User Interaction**: Interactive prompts, confirmations, password input, and menu selections
 - **Utility Functions**: Retry logic, human-readable formatting, random string generation
@@ -213,6 +214,60 @@ The library can be configured using environment variables:
 |----------|-------------|
 | `setup_signal_handlers([cleanup_func])` | Set up EXIT, INT, TERM handlers |
 | `cleanup_on_exit()` | Default cleanup function |
+
+## 📁 filesystem.sh – File‑system utilities
+
+The `filesystem.sh` module bundles a small set of safe, POSIX‑compatible helpers for dealing with files, directories and permissions. It is loaded automatically by `bash-utils.sh` when you source the library.
+
+### Public functions
+
+| Function | Description |
+|----------|-------------|
+| `fs_exists <path>` | Returns true if *any* file‑system object exists at `<path>`. |
+| `fs_is_file <path>` | True only for regular files. |
+| `fs_is_dir <path>` | True only for directories. |
+| `fs_is_symlink <path>` | Detects symbolic links. |
+| `fs_create_dir <path> [mode]` | Recursively creates a directory tree, optionally setting its mode (default `0755`). |
+| `fs_remove <path> [force]` | Deletes a file or directory; `force=true` uses `rm -rf`. |
+| `fs_copy <src> <dst> [preserve]` | Copies a file or directory; `preserve=true` keeps timestamps/ownership. |
+| `fs_move <src> <dst>` | Moves/renames a file or directory. |
+| `fs_perm_get <path>` | Prints the octal permission bits of `<path>`. |
+| `fs_perm_set <path> <mode>` | Sets the permission bits of `<path>` (e.g. `0644`). |
+
+### Dependencies
+
+This module relies on a few internal helpers from the utils library:
+
+- **`config.sh`** – Provides colour settings and verbosity flags used throughout the module.
+- **`logging.sh`** – All filesystem-related actions are recorded using `log_info` and `log_error`.
+- **`validation.sh`** – Supplies internal validation functions such as `validate_file` and `validate_directory`, used to ensure safe and predictable behaviour.
+
+
+
+### Example usage
+
+```bash
+#!/usr/bin/env bash
+source "./bash-utils.sh"   # pulls in all modules, including filesystem
+
+# Create a safe workspace
+WORKDIR=$(mktemp -d)
+fs_create_dir "$WORKDIR/logs" 0750
+
+# Copy a configuration file, preserving its attributes
+fs_copy "/etc/myapp.conf" "$WORKDIR/conf/myapp.conf" true
+
+# Verify that the copy succeeded
+if fs_is_file "$WORKDIR/conf/myapp.conf"; then
+  log_info "Configuration successfully staged."
+else
+  log_error "Failed to copy configuration."
+  exit 1
+fi
+
+# Clean up on exit
+cleanup_on_exit() { rm -rf "$WORKDIR"; }
+setup_signal_handlers   # from utils.sh – ensures the cleanup runs on SIGINT/SIGTERM
 
 ### Colors
 

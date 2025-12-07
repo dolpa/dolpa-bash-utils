@@ -39,8 +39,11 @@ teardown() {
         source "'${BATS_TEST_DIRNAME}'/../modules/config.sh"
         source "'${BATS_TEST_DIRNAME}'/../modules/logging.sh" 
         source "'${BATS_TEST_DIRNAME}'/../modules/prompts.sh"
-        echo "test_input" | prompt_input "Enter value: "
+        echo "test_input" | prompt_input "Enter value: " 2>/dev/null
     '
+    # Debug output
+    echo "DEBUG-OUT:$output"
+    echo "DEBUG-ERR:$stderr"
     [ "$status" -eq 0 ]
     [ "$output" = "test_input" ]
 }
@@ -50,8 +53,11 @@ teardown() {
         source "'${BATS_TEST_DIRNAME}'/../modules/config.sh"
         source "'${BATS_TEST_DIRNAME}'/../modules/logging.sh" 
         source "'${BATS_TEST_DIRNAME}'/../modules/prompts.sh"
-        echo "" | prompt_input "Enter value: " "default_value"
+        echo "" | prompt_input "Enter value: " "default_value" 2>/dev/null
     '
+    # Debug output
+    echo "DEBUG-OUT:$output"
+    echo "DEBUG-ERR:$stderr"
     [ "$status" -eq 0 ]
     [ "$output" = "default_value" ]
 }
@@ -61,8 +67,11 @@ teardown() {
         source "'${BATS_TEST_DIRNAME}'/../modules/config.sh"
         source "'${BATS_TEST_DIRNAME}'/../modules/logging.sh" 
         source "'${BATS_TEST_DIRNAME}'/../modules/prompts.sh"
-        echo "  test_input  " | prompt_input "Enter value: "
+        echo "  test_input  " | prompt_input "Enter value: " 2>/dev/null
     '
+    # Debug output
+    echo "DEBUG-OUT:$output"
+    echo "DEBUG-ERR:$stderr"
     [ "$status" -eq 0 ]
     [ "$output" = "test_input" ]
 }
@@ -145,8 +154,11 @@ teardown() {
         source "'${BATS_TEST_DIRNAME}'/../modules/config.sh"
         source "'${BATS_TEST_DIRNAME}'/../modules/logging.sh" 
         source "'${BATS_TEST_DIRNAME}'/../modules/prompts.sh"
-        echo "1" | prompt_menu "Select:" "Option A" "Option B" "Option C"
+        echo "1" | prompt_menu "Select:" "Option A" "Option B" "Option C" 2>/dev/null
     '
+    # Debug output
+    echo "DEBUG-OUT:$output"
+    echo "DEBUG-ERR:$stderr"
     [ "$status" -eq 0 ]
     [ "$output" = "Option A" ]
 }
@@ -170,8 +182,11 @@ teardown() {
         source "'${BATS_TEST_DIRNAME}'/../modules/config.sh"
         source "'${BATS_TEST_DIRNAME}'/../modules/logging.sh" 
         source "'${BATS_TEST_DIRNAME}'/../modules/prompts.sh"
-        echo "42" | prompt_number "Enter number: "
+        echo "42" | prompt_number "Enter number: " 2>/dev/null
     '
+    # Debug output
+    echo "DEBUG-OUT:$output"
+    echo "DEBUG-ERR:$stderr"
     [ "$status" -eq 0 ]
     [ "$output" = "42" ]
 }
@@ -181,8 +196,11 @@ teardown() {
         source "'${BATS_TEST_DIRNAME}'/../modules/config.sh"
         source "'${BATS_TEST_DIRNAME}'/../modules/logging.sh" 
         source "'${BATS_TEST_DIRNAME}'/../modules/prompts.sh"
-        printf "5\\n10\\n" | prompt_number "Enter number: " 8 20
+        printf "5\\n10\\n" | prompt_number "Enter number: " 8 20 2>/dev/null
     '
+    # Debug output
+    echo "DEBUG-OUT:$output"
+    echo "DEBUG-ERR:$stderr"
     [ "$status" -eq 0 ]
     [ "$output" = "10" ]
 }

@@ -302,7 +302,15 @@ str_substring() {
 # Returns: reversed string via stdout
 str_reverse() {
     local string="$1"
-    echo "$string" | rev
+    local reversed=""
+    local i
+    
+    # Reverse character by character using pure bash
+    for ((i=${#string}-1; i>=0; i--)); do
+        reversed="${reversed}${string:$i:1}"
+    done
+    
+    echo "$reversed"
 }
 
 export -f str_upper str_lower str_title str_length str_trim str_ltrim str_rtrim \

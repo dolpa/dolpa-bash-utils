@@ -2,6 +2,35 @@
 
 A comprehensive collection of utility functions for bash scripts, providing logging, validation, file operations, system detection, and more.
 
+## Files layout:
+
+bash-utils/
+├── modules/
+│   ├── config.sh
+│   ├── files.sh
+│   ├── logging.sh
+│   ├── prompts.sh
+│   ├── strings.sh
+│   ├── system.sh
+│   ├── utils.sh
+│   └── validation.sh
+├── tests/
+│   ├── test_config.bats
+│   ├── test_files.bats
+│   ├── test_helper.bats
+│   ├── test_integration.bats
+│   ├── test_logging.bats
+│   ├── test_prompts.bats
+│   ├── test_strings.bats
+│   ├── test_system.bats
+│   ├── test_utils.bats
+│   └── test_validation.bats
+├── bash-utils.sh
+├── Dockerfile
+├── LICENSE
+├── README.md
+└── run-tests.sh
+
 ## Features
 
 - **Rich Logging**: Color-coded logging with timestamps and multiple log levels

@@ -19,11 +19,13 @@ readonly BASH_UTILS_CONFIG_LOADED="true"
 # CONFIGURATION AND CONSTANTS
 #===============================================================================
 
-# Version information
+# Library version and identification
+# These constants define the library's identity and are used by bash_utils_info()
 readonly BASH_UTILS_VERSION="main"
 readonly BASH_UTILS_NAME="Bash Utility Library"
 
-# Default configuration
+# Default configuration variables
+# These can be overridden by setting environment variables before sourcing
 BASH_UTILS_VERBOSE=${BASH_UTILS_VERBOSE:-false}
 BASH_UTILS_DEBUG=${BASH_UTILS_DEBUG:-false}
 BASH_UTILS_TIMESTAMP_FORMAT=${BASH_UTILS_TIMESTAMP_FORMAT:-'%Y-%m-%d %H:%M:%S'}
@@ -33,9 +35,10 @@ BASH_UTILS_LOG_LEVEL=${BASH_UTILS_LOG_LEVEL:-"INFO"}
 # COLOR CODES
 #===============================================================================
 
-# Color definitions (ANSI escape codes)
+# Color definitions with automatic terminal detection
+# Colors are only set if stdout is a terminal, TERM is not 'dumb', and NO_COLOR is not set
 if [[ -t 1 ]] && [[ "${TERM:-}" != "dumb" ]] && [[ "${NO_COLOR:-}" != "1" ]]; then
-    # Standard colors
+    # Standard ANSI colors (foreground)
     readonly COLOR_RED='\033[0;31m'
     readonly COLOR_GREEN='\033[0;32m'
     readonly COLOR_YELLOW='\033[1;33m'
@@ -45,7 +48,7 @@ if [[ -t 1 ]] && [[ "${TERM:-}" != "dumb" ]] && [[ "${NO_COLOR:-}" != "1" ]]; th
     readonly COLOR_WHITE='\033[1;37m'
     readonly COLOR_GRAY='\033[0;37m'
     
-    # Bright colors
+    # Bright/bold variant colors
     readonly COLOR_BRIGHT_RED='\033[1;31m'
     readonly COLOR_BRIGHT_GREEN='\033[1;32m'
     readonly COLOR_BRIGHT_YELLOW='\033[1;33m'
@@ -53,13 +56,13 @@ if [[ -t 1 ]] && [[ "${TERM:-}" != "dumb" ]] && [[ "${NO_COLOR:-}" != "1" ]]; th
     readonly COLOR_BRIGHT_PURPLE='\033[1;35m'
     readonly COLOR_BRIGHT_CYAN='\033[1;36m'
     
-    # Background colors
+    # Background colors for highlighting
     readonly COLOR_BG_RED='\033[41m'
     readonly COLOR_BG_GREEN='\033[42m'
     readonly COLOR_BG_YELLOW='\033[43m'
     readonly COLOR_BG_BLUE='\033[44m'
     
-    # Text formatting
+    # Text styling and formatting options
     readonly COLOR_BOLD='\033[1m'
     readonly COLOR_DIM='\033[2m'
     readonly COLOR_UNDERLINE='\033[4m'
@@ -67,11 +70,12 @@ if [[ -t 1 ]] && [[ "${TERM:-}" != "dumb" ]] && [[ "${NO_COLOR:-}" != "1" ]]; th
     readonly COLOR_REVERSE='\033[7m'
     readonly COLOR_STRIKETHROUGH='\033[9m'
     
-    # Reset
+    # Reset codes to return to normal formatting
     readonly COLOR_RESET='\033[0m'
     readonly COLOR_NC='\033[0m'  # No Color (alias for reset)
 else
-    # No color support or explicitly disabled
+    # Terminal doesn't support colors or colors are explicitly disabled
+    # Set all color variables to empty strings for compatibility
     readonly COLOR_RED=""
     readonly COLOR_GREEN=""
     readonly COLOR_YELLOW=""

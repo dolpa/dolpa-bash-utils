@@ -4,7 +4,7 @@
 # Bash Utility Library - Utilities Module
 #===============================================================================
 # Description: General utility functions, signal handling, and version management
-# Author: dolpa
+# Author: dolpa (https://dolpa.me)
 # Version: main
 # License: Unlicense
 # Dependencies: logging.sh (for logging), config.sh (for colors)

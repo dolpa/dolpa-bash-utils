@@ -1,217 +1,319 @@
-#!/usr/bin/env bash
-#=================================================================
-# Bash Utility Library – Strings Module
-#=================================================================
-# Description : Handy helpers for working with strings and words
-# Author      : <your‑name>
-# Version     : main
-# License     : Unlicense
-# Dependencies: logging.sh (for coloured log output)
-#=================================================================
+#!/bin/bash
 
-# Prevent multiple sourcing – same pattern as the other modules
-# (see utils.sh, logging.sh, etc.) [5] [3]
+#===============================================================================
+# Bash Utility Library - Strings Module
+#===============================================================================
+# Description: String manipulation and text processing utilities including case
+#              conversion, trimming, validation, and advanced text operations
+# Author: dolpa (https://dolpa.me)
+# Version: main
+# License: Unlicense
+# Dependencies: logging.sh (for error logging)
+#===============================================================================
+
+# Prevent multiple sourcing
 if [[ "${BASH_UTILS_STRINGS_LOADED:-}" == "true" ]]; then
     return 0
 fi
 readonly BASH_UTILS_STRINGS_LOADED="true"
 
-#=================================================================
-# INTERNAL HELPERS
-#=================================================================
+#===============================================================================
+# STRING MANIPULATION FUNCTIONS
+#===============================================================================
 
-# Strip leading and trailing whitespace
-# Usage: trimmed=$(str_trim "   some text   ")
-str_trim() {
-    local s="$1"
-    # shellcheck disable=SC2001
-    echo -e "${s}" | sed -e 's/^[[:space:]]\+//' -e 's/[[:space:]]\+$//'
-}
-
-#=================================================================
-# PUBLIC STRING FUNCTIONS
-#=================================================================
-
-# Convert a string to upper‑case
-#   upper=$(str_upper "hello")
+# Convert string to uppercase
+# Usage: upper=$(str_upper "hello world")
+# Arguments:
+#   $1 - string to convert
+# Returns: uppercase string via stdout
 str_upper() {
-    local s="${1}"
-    echo "${s}" | tr '[:lower:]' '[:upper:]'
+    local string="$1"
+    echo "${string}" | tr '[:lower:]' '[:upper:]'
 }
 
-# Convert a string to lower‑case
-#   lower=$(str_lower "HELLO")
+# Convert string to lowercase
+# Usage: lower=$(str_lower "HELLO WORLD")
+# Arguments:
+#   $1 - string to convert
+# Returns: lowercase string via stdout
 str_lower() {
-    local s="${1}"
-    echo "${s}" | tr '[:upper:]' '[:lower:]'
+    local string="$1"
+    echo "${string}" | tr '[:upper:]' '[:lower:]'
 }
 
-# Return the length of a string (in characters)
-#   len=$(str_length "abc")
-str_length() {
-    local s="${1}"
-    echo "${#s}"
-}
-
-# Test if a string contains a given substring
-#   if str_contains "$text" "needle"; then …
-str_contains() {
-    local txt="$1"
-    local pat="$2"
-
-    # If the pattern is found, print the original string and succeed.
-    if [[ "$txt" == *"$pat"* ]]; then
-        printf '%s\n' "$txt"
-        return 0
-    fi
-
-    # No match → fail (no output)
-    return 1
-}
-
-# Test if a string starts with a prefix
-#   if str_startswith "$text" "pre"; then …
-str_startswith() {
-    local txt="$1"
-    local prefix="$2"
-
-    if [[ "$txt" == "$prefix"* ]]; then
-        printf '%s\n' "$txt"
-        return 0
-    fi
-    return 1
-}
-
-# Test if a string ends with a suffix
-#   if str_endswith "$text" ".txt"; then …
-str_endswith() {
-    local txt="$1"
-    local suffix="$2"
-
-    if [[ "$txt" == *"$suffix" ]]; then
-        printf '%s\n' "$txt"
-        return 0
-    fi
-    return 1
-}
-
-# Replace all occurrences of a pattern (plain text, not regex)
-#   new=$(str_replace "foo bar foo" "foo" "baz")
-str_replace() {
-    local str="${1}"
-    local search="${2}"
-    local replace="${3}"
-    echo "${str//${search}/${replace}}"
-}
-
-# Split a string into an array by a delimiter
-#   IFS=' ' read -r -a words <<< "$(str_split "one two three" " ")"
-str_split() {
-    local s="${1}"
-    local delim="${2:- }"
-    # Turn the string into a newline‑separated list, then read it back
-    IFS=$'\n' read -rd '' -a result <<< "$(printf '%s' "${s}" | tr "${delim}" '\n')"
-    printf '%s\n' "${result[@]}"
-}
-
-# Join an array of words into a single string with a delimiter
-#   joined=$(str_join "," "a" "b" "c")
-str_join() {
-    local delim="${1}"
-    shift
-    local first=true
-    local out=
-    for elem in "$@"; do
-        if $first; then
-            out="${elem}"
-            first=false
-        else
-            out="${out}${delim}${elem}"
-        fi
-    done
-    echo "${out}"
-}
-
-# Count words (separated by whitespace) in a string
-#   n=$(str_word_count "one two three")
-str_word_count() {
-    local s="${1}"
-    # Collapse consecutive whitespace, then count the fields
-    echo "${s}" | tr -s '[:space:]' '\n' | wc -l | tr -d ' '
-}
-
-# Return a substring (offset, length)
-#   sub=$(str_substring "abcdef" 2 3)   # => "cde"
-str_substring() {
-    local s="${1}"
-    local offset="${2}"
-    local length="${3:-}"
-    if [[ -z "${length}" ]]; then
-        echo "${s:offset}"
-    else
-        echo "${s:offset:length}"
-    fi
-}
-
-# Repeat a string N times
-#   repeated=$(str_repeat "ab" 3)   # => "ababab"
-str_repeat() {
-    local s="${1}"
-    local n="${2}"
-    local result=
-    for ((i=0; i<n; i++)); do
-        result+="${s}"
-    done
-    echo "${result}"
-}
-
-# PUBLIC WORD FUNCTIONS
-# Count how many times a word appears in a string (exact word match)
-#   cnt=$(str_word_occurrences "a b a c a" "a")   # => 3
-str_word_occurrences() {
-    local text="${1}"
-    local word="${2}"
-    # Pad both sides with a space to avoid partial matches
-    local padded=" ${text} "
-    local pattern=" ${word} "
-    echo "${padded}" | grep -o "${pattern}" | wc -l | tr -d ' '
-}
-
-# Return the N‑th word (1‑based) of a string
-#   third=$(str_nth_word "one two three four" 3)   # => "three"
-str_nth_word() {
-    local text="${1}"
-    local n="${2}"
-    echo "${text}" | awk -v idx="${n}" '{print $idx}'
-}
-
-# Convert a string to title‑case (first letter of each word capitalised)
-#   title=$(str_title "this is a test")
+# Convert string to title case (first letter of each word capitalized)
+# Usage: title=$(str_title "hello world")
+# Arguments:
+#   $1 - string to convert
+# Returns: title case string via stdout
 str_title() {
-    local s="${1}"
-    echo "${s}" | awk '
-        {
-            for (i=1; i<=NF; i++) {
-                $i = toupper(substr($i,1,1)) tolower(substr($i,2))
-            }
-            print
-        }'
+    local string="$1"
+    echo "${string}" | sed 's/\b\(.\)/\u\1/g'
 }
 
-# EXPORT FUNCTIONS
-export -f str_trim
-export -f str_upper
-export -f str_lower
-export -f str_length
-export -f str_contains
-export -f str_startswith
-export -f str_endswith
-export -f str_replace
-export -f str_split
-export -f str_join
-export -f str_word_count
-export -f str_substring
-export -f str_repeat
-export -f str_nth_word
-export -f str_word_occurrences
-export -f str_title
+# Get string length in characters
+# Usage: length=$(str_length "hello")
+# Arguments:
+#   $1 - string to measure
+# Returns: length as integer via stdout
+str_length() {
+    local string="$1"
+    echo "${#string}"
+}
+
+# Trim whitespace from beginning and end of string
+# Usage: trimmed=$(str_trim "   hello world   ")
+# Arguments:
+#   $1 - string to trim
+# Returns: trimmed string via stdout
+str_trim() {
+    local string="$1"
+    # Remove leading whitespace
+    string="${string#"${string%%[![:space:]]*}"}"
+    # Remove trailing whitespace
+    string="${string%"${string##*[![:space:]]}"}"
+    echo "${string}"
+}
+
+# Trim whitespace from beginning of string
+# Usage: left_trimmed=$(str_ltrim "   hello world")
+# Arguments:
+#   $1 - string to left trim
+# Returns: left-trimmed string via stdout
+str_ltrim() {
+    local string="$1"
+    string="${string#"${string%%[![:space:]]*}"}"
+    echo "${string}"
+}
+
+# Trim whitespace from end of string
+# Usage: right_trimmed=$(str_rtrim "hello world   ")
+# Arguments:
+#   $1 - string to right trim
+# Returns: right-trimmed string via stdout
+str_rtrim() {
+    local string="$1"
+    string="${string%"${string##*[![:space:]]}"}"
+    echo "${string}"
+}
+
+# Check if string starts with specified prefix
+# Usage: if str_starts_with "hello world" "hello"; then ...; fi
+# Arguments:
+#   $1 - string to check
+#   $2 - prefix to look for
+# Returns: 0 if string starts with prefix, 1 otherwise
+str_starts_with() {
+    local string="$1"
+    local prefix="$2"
+    [[ "$string" == "$prefix"* ]]
+}
+
+# Check if string ends with specified suffix
+# Usage: if str_ends_with "hello world" "world"; then ...; fi
+# Arguments:
+#   $1 - string to check
+#   $2 - suffix to look for
+# Returns: 0 if string ends with suffix, 1 otherwise
+str_ends_with() {
+    local string="$1"
+    local suffix="$2"
+    [[ "$string" == *"$suffix" ]]
+}
+
+# Check if string contains substring
+# Usage: if str_contains "hello world" "llo wo"; then ...; fi
+# Arguments:
+#   $1 - string to search in
+#   $2 - substring to find
+# Returns: 0 if substring found, 1 otherwise
+str_contains() {
+    local string="$1"
+    local substring="$2"
+    [[ "$string" == *"$substring"* ]]
+}
+
+# Replace all occurrences of a substring with replacement
+# Usage: replaced=$(str_replace "hello world" "world" "universe")
+# Arguments:
+#   $1 - original string
+#   $2 - substring to replace
+#   $3 - replacement string
+# Returns: modified string via stdout
+str_replace() {
+    local string="$1"
+    local search="$2"
+    local replace="$3"
+    echo "${string//"$search"/"$replace"}"
+}
+
+# Replace first occurrence of a substring with replacement
+# Usage: replaced=$(str_replace_first "hello world world" "world" "universe")
+# Arguments:
+#   $1 - original string
+#   $2 - substring to replace
+#   $3 - replacement string
+# Returns: modified string via stdout
+str_replace_first() {
+    local string="$1"
+    local search="$2"
+    local replace="$3"
+    echo "${string/"$search"/"$replace"}"
+}
+
+# Split string by delimiter into array
+# Usage: str_split "a,b,c" "," result_array
+# Arguments:
+#   $1 - string to split
+#   $2 - delimiter
+#   $3 - name of array variable to populate
+str_split() {
+    local string="$1"
+    local delimiter="$2"
+    local -n result_ref="$3"
+    
+    # Clear the result array
+    result_ref=()
+    
+    # Handle empty string
+    if [[ -z "$string" ]]; then
+        return 0
+    fi
+    
+    # Split string using delimiter
+    IFS="$delimiter" read -ra result_ref <<< "$string"
+}
+
+# Join array elements with delimiter
+# Usage: joined=$(str_join "," "a" "b" "c")
+# Arguments:
+#   $1 - delimiter
+#   $2+ - strings to join
+# Returns: joined string via stdout
+str_join() {
+    local delimiter="$1"
+    shift
+    local first="$1"
+    shift
+    printf "%s" "$first" "${@/#/$delimiter}"
+}
+
+# Repeat string n times
+# Usage: repeated=$(str_repeat "abc" 3)
+# Arguments:
+#   $1 - string to repeat
+#   $2 - number of times to repeat
+# Returns: repeated string via stdout
+str_repeat() {
+    local string="$1"
+    local count="$2"
+    local result=""
+    local i
+
+    for ((i = 0; i < count; i++)); do
+        result+="$string"
+    done
+    echo "$result"
+}
+
+# Pad string to specified length with character
+# Usage: padded=$(str_pad_left "abc" 10 "0")
+# Arguments:
+#   $1 - string to pad
+#   $2 - target length
+#   $3 - padding character (default: space)
+# Returns: padded string via stdout
+str_pad_left() {
+    local string="$1"
+    local length="$2"
+    local padchar="${3:- }"
+    local current_length="${#string}"
+    
+    if [[ $current_length -ge $length ]]; then
+        echo "$string"
+        return
+    fi
+    
+    local pad_length=$((length - current_length))
+    local padding
+    padding=$(str_repeat "$padchar" "$pad_length")
+    echo "${padding}${string}"
+}
+
+# Pad string to specified length with character on the right
+# Usage: padded=$(str_pad_right "abc" 10 "0")
+# Arguments:
+#   $1 - string to pad
+#   $2 - target length
+#   $3 - padding character (default: space)
+# Returns: padded string via stdout
+str_pad_right() {
+    local string="$1"
+    local length="$2"
+    local padchar="${3:- }"
+    local current_length="${#string}"
+    
+    if [[ $current_length -ge $length ]]; then
+        echo "$string"
+        return
+    fi
+    
+    local pad_length=$((length - current_length))
+    local padding
+    padding=$(str_repeat "$padchar" "$pad_length")
+    echo "${string}${padding}"
+}
+
+# Check if string is empty or contains only whitespace
+# Usage: if str_is_empty "   "; then ...; fi
+# Arguments:
+#   $1 - string to check
+# Returns: 0 if empty/whitespace only, 1 otherwise
+str_is_empty() {
+    local string="$1"
+    local trimmed
+    trimmed=$(str_trim "$string")
+    [[ -z "$trimmed" ]]
+}
+
+# Extract substring by position and length
+# Usage: substring=$(str_substring "hello world" 6 5)
+# Arguments:
+#   $1 - original string
+#   $2 - start position (0-based)
+#   $3 - length (optional, default: to end of string)
+# Returns: substring via stdout
+str_substring() {
+    local string="$1"
+    local start="$2"
+    local length="${3:-}"
+    
+    if [[ -n "$length" ]]; then
+        echo "${string:$start:$length}"
+    else
+        echo "${string:$start}"
+    fi
+}
+
+# Reverse a string
+# Usage: reversed=$(str_reverse "hello")
+# Arguments:
+#   $1 - string to reverse
+# Returns: reversed string via stdout
+str_reverse() {
+    local string="$1"
+    local reversed=""
+    local i
+    
+    # Reverse character by character using pure bash
+    for ((i=${#string}-1; i>=0; i--)); do
+        reversed="${reversed}${string:$i:1}"
+    done
+    
+    echo "$reversed"
+}
+
+export -f str_upper str_lower str_title str_length str_trim str_ltrim str_rtrim \
+          str_starts_with str_ends_with str_contains str_replace str_replace_first \
+          str_split str_join str_repeat str_pad_left str_pad_right str_is_empty \
+          str_substring str_reverse

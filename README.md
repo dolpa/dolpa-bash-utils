@@ -3,7 +3,7 @@
 A comprehensive collection of utility functions for bash scripts, providing logging, validation, file operations, system detection, and more.
 
 ## Files layout:
-
+```
 bash-utils/
 ├── modules/
 │   ├── config.sh
@@ -30,6 +30,7 @@ bash-utils/
 ├── LICENSE
 ├── README.md
 └── run-tests.sh
+```
 
 ## Features
 
@@ -37,7 +38,8 @@ bash-utils/
 - **Input Validation**: Functions for validating files, directories, emails, URLs, system names, etc.
 - **System Detection**: Auto-detect system information using DMI data
 - **File Operations**: Backup creation, directory management, path resolution
-- **User Interaction**: Confirmation prompts, progress spinners
+- **String Manipulation**: Comprehensive string processing utilities including case conversion, trimming, and validation
+- **User Interaction**: Interactive prompts, confirmations, password input, and menu selections
 - **Utility Functions**: Retry logic, human-readable formatting, random string generation
 - **Signal Handling**: Graceful script termination and cleanup
 - **Color Support**: Comprehensive color definitions with automatic detection
@@ -238,50 +240,117 @@ RED, GREEN, YELLOW, BLUE, NC
 
 ## String Utilities (strings.sh)
 
-The `strings.sh` module provides a suite of functions for manipulating and analyzing strings and words in bash scripts.
+The `strings.sh` module provides comprehensive string manipulation and text processing utilities.
 
 ### Features
-- Whitespace trimming
 - Case conversion (upper/lower/title)
-- Substring extraction
-- Word counting and selection
-- String splitting/joining
-- Pattern matching (contains, startswith, endswith)
-- String replacement
-- Repeating strings
+- Whitespace trimming (left, right, both)
+- String validation and testing (contains, starts/ends with, empty check)
+- String manipulation (replace, substring, reverse)
+- String formatting (padding, repeating)
+- Array operations (split, join)
 
 ### API Reference
+
 | Function | Description |
 |----------|-------------|
-| `str_trim(s)` | Remove leading/trailing whitespace |
-| `str_upper(s)` | Convert string to upper-case |
-| `str_lower(s)` | Convert string to lower-case |
-| `str_length(s)` | Get length of string |
-| `str_contains(s, pat)` | Test if string contains substring |
-| `str_startswith(s, prefix)` | Test if string starts with prefix |
-| `str_endswith(s, suffix)` | Test if string ends with suffix |
-| `str_replace(s, search, replace)` | Replace all occurrences of search with replace |
-| `str_split(s, delim)` | Split string into lines by delimiter |
-| `str_join(delim, ...words)` | Join words with delimiter |
-| `str_word_count(s)` | Count words in string |
-| `str_word_occurrences(s, word)` | Count occurrences of word |
-| `str_nth_word(s, n)` | Get the n-th word (1-based) |
-| `str_substring(s, offset, [length])` | Get substring from offset (and optional length) |
-| `str_repeat(s, n)` | Repeat string n times |
-| `str_title(s)` | Convert string to title-case |
+| `str_upper(string)` | Convert string to uppercase |
+| `str_lower(string)` | Convert string to lowercase |
+| `str_title(string)` | Convert string to title case |
+| `str_length(string)` | Get string length in characters |
+| `str_trim(string)` | Remove leading and trailing whitespace |
+| `str_ltrim(string)` | Remove leading whitespace only |
+| `str_rtrim(string)` | Remove trailing whitespace only |
+| `str_starts_with(string, prefix)` | Check if string starts with prefix |
+| `str_ends_with(string, suffix)` | Check if string ends with suffix |
+| `str_contains(string, substring)` | Check if string contains substring |
+| `str_replace(string, search, replace)` | Replace all occurrences |
+| `str_replace_first(string, search, replace)` | Replace first occurrence only |
+| `str_split(string, delimiter, array_name)` | Split string into array |
+| `str_join(delimiter, word1, word2, ...)` | Join words with delimiter |
+| `str_repeat(string, count)` | Repeat string n times |
+| `str_pad_left(string, length, [char])` | Pad string on the left |
+| `str_pad_right(string, length, [char])` | Pad string on the right |
+| `str_is_empty(string)` | Check if string is empty/whitespace |
+| `str_substring(string, start, [length])` | Extract substring |
+| `str_reverse(string)` | Reverse a string |
 
 ### Example Usage
 ```bash
 source "./modules/strings.sh"
 
-trimmed=$(str_trim "   hello world   ")
-upper=$(str_upper "abc")
-lower=$(str_lower "ABC")
-length=$(str_length "hello")
-contains=$(str_contains "foo bar" "bar")
-joined=$(str_join "," "a" "b" "c")
-words=$(str_split "one two three" " ")
-title=$(str_title "hello world from bash")
+# Case conversion
+upper=$(str_upper "hello world")              # "HELLO WORLD"
+lower=$(str_lower "HELLO WORLD")              # "hello world"
+title=$(str_title "hello world")              # "Hello World"
+
+# String testing
+if str_contains "hello world" "world"; then
+    echo "Found 'world' in string"
+fi
+
+# String manipulation
+trimmed=$(str_trim "   hello   ")             # "hello"
+replaced=$(str_replace "foo bar foo" "foo" "baz")  # "baz bar baz"
+
+# Array operations
+declare -a words
+str_split "a,b,c" "," words
+joined=$(str_join "-" "${words[@]}")          # "a-b-c"
+```
+
+## User Interaction (prompts.sh)
+
+The `prompts.sh` module provides interactive functions for user input, confirmations, and menu selections.
+
+### Features
+- Text input with optional defaults
+- Secure password input (no echo)
+- Yes/No confirmation prompts
+- Numbered menu selections
+- Numeric input with validation
+- Pause/continue prompts
+
+### API Reference
+
+| Function | Description |
+|----------|-------------|
+| `prompt_input(message, [default])` | Prompt for text input with optional default |
+| `prompt_password(message)` | Prompt for password (silent input) |
+| `prompt_confirm(message)` | Yes/No confirmation (default: No) |
+| `prompt_confirm_yes(message)` | Yes/No confirmation (default: Yes) |
+| `prompt_menu(title, option1, option2, ...)` | Display numbered menu and get selection |
+| `prompt_pause([message])` | Wait for Enter key press |
+| `prompt_number(message, [min], [max])` | Prompt for numeric input with validation |
+
+### Example Usage
+```bash
+source "./modules/prompts.sh"
+
+# Basic input
+name=$(prompt_input "Enter your name: " "Anonymous")
+password=$(prompt_password "Enter password: ")
+
+# Confirmations
+if prompt_confirm "Delete all files?"; then
+    echo "Deleting files..."
+fi
+
+if prompt_confirm_yes "Continue with installation?"; then
+    echo "Installing..."
+fi
+
+# Menu selection
+choice=$(prompt_menu "Select action:" "Create file" "Delete file" "Edit file")
+echo "You selected: $choice"
+
+# Numeric input
+age=$(prompt_number "Enter age: " 1 120)
+echo "Age: $age"
+
+# Pause
+prompt_pause "Press Enter to continue..."
+```
 ```
 
 ## Examples

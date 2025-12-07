@@ -20,7 +20,14 @@ readonly BASH_UTILS_FILES_LOADED="true"
 # FILE AND DIRECTORY FUNCTIONS
 #===============================================================================
 
-# Create a backup of a file with timestamp
+# Create a timestamped backup copy of a file
+# Generates backup with format: filename.backup.YYYYMMDD_HHMMSS
+# Usage: backup_path=$(create_backup "/etc/hosts" "/tmp/backups")
+# Arguments:
+#   $1 - source file path to backup
+#   $2 - optional backup directory (default: same as source file directory)
+#   $3 - optional backup filename base (default: source filename)
+# Returns: 0 on success, 1 on failure; prints backup path to stdout
 create_backup() {
     local source_file="$1"
     local backup_dir="${2:-$(dirname "$source_file")}"
@@ -44,7 +51,13 @@ create_backup() {
     fi
 }
 
-# Create directory if it doesn't exist
+# Create directory if it doesn't exist, with specified permissions
+# Creates parent directories as needed (like mkdir -p)
+# Usage: ensure_directory "/var/log/myapp" "750"
+# Arguments:
+#   $1 - directory path to create
+#   $2 - optional permissions (default: 755)
+# Returns: 0 on success, 1 on failure
 ensure_directory() {
     local dir="$1"
     local permissions="${2:-755}"
@@ -63,7 +76,12 @@ ensure_directory() {
     return 0
 }
 
-# Get absolute path of a file or directory
+# Get the absolute path of a file or directory
+# Resolves relative paths and symbolic links
+# Usage: abs_path=$(get_absolute_path "../config.txt")
+# Arguments:
+#   $1 - file or directory path to resolve
+# Returns: 0 on success, 1 if path doesn't exist; prints absolute path to stdout
 get_absolute_path() {
     local path="$1"
     
@@ -79,7 +97,10 @@ get_absolute_path() {
     fi
 }
 
-# Get script directory (directory containing the calling script)
+# Get the directory containing the calling script
+# Resolves symbolic links to get the actual script location
+# Usage: script_dir=$(get_script_dir)
+# Returns: directory path containing the calling script
 get_script_dir() {
     local script_path="${BASH_SOURCE[1]}"
     if [[ -L "$script_path" ]]; then
@@ -88,10 +109,12 @@ get_script_dir() {
     dirname "$script_path"
 }
 
-# Get script name (name of the calling script)
+# Get the name of the calling script (filename only, no path)
+# Usage: script_name=$(get_script_name)
+# Returns: filename of the calling script
 get_script_name() {
     basename "${BASH_SOURCE[1]}"
 }
 
-# Export file operation functions
+# Export all file operation functions for use in other scripts
 export -f create_backup ensure_directory get_absolute_path get_script_dir get_script_name

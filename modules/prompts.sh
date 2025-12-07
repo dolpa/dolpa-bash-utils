@@ -1,167 +1,220 @@
-#!/usr/bin/env bash
-#====================================================================
-# Bash Utility Library – Prompt & Input Module
-#====================================================================
-# Description: Helper functions for reading user input, passwords,
-#              yes/no confirmations, and simple menus.
-# Author:      dolpa (https://dolpa.me)
-# Version:     main
-# License:     Unlicense
-# Dependencies: logging.sh (for coloured log output)
-#====================================================================
+#!/bin/bash
 
-# -----------------------------------------------------------------
-#  Guard against double‑sourcing
-# ----------------------------------------------------------------------
+#===============================================================================
+# Bash Utility Library - Prompts Module
+#===============================================================================
+# Description: User input and interaction functions for prompts, confirmations,
+#              password input, and simple menu selections
+# Author: dolpa (https://dolpa.me)
+# Version: main
+# License: Unlicense
+# Dependencies: logging.sh (for error logging and colored output)
+#===============================================================================
+
+# Prevent multiple sourcing
 if [[ "${BASH_UTILS_PROMPTS_LOADED:-}" == "true" ]]; then
     return 0
 fi
 readonly BASH_UTILS_PROMPTS_LOADED="true"
 
+#===============================================================================
+# USER INPUT AND PROMPT FUNCTIONS
+#===============================================================================
 
-# ----------------------------------------------------------------------
-#  Basic text prompt
-# ----------------------------------------------------------------------
-# Prompt the user for a free‑form value.
-#   $1 – prompt message
-#   $2 – optional default value (used when the user just hits <Enter>)
-# Writes only the answer to STDOUT; the prompt itself goes to STDERR.
-# ----------------------------------------------------------------------
+# Prompt user for text input with optional default value
+# Displays prompt on stderr to avoid interfering with output capture
+# Usage: result=$(prompt_input "Enter name: " "default_name")
+# Arguments:
+#   $1 - prompt message to display
+#   $2 - optional default value (used when user just hits Enter)
+# Returns: user input or default value via stdout
 prompt_input() {
-    local msg=$1
-    local default=$2
+    local msg="$1"
+    local default="$2"
     local answer
 
-    # Prompt on STDERR so BATS doesn’t capture it.
+    # Display prompt on stderr so it doesn't interfere with output capture
     printf "%s " "$msg" >&2
 
-    # Read a line from STDIN (the test feeds the line via a pipe).
+    # Read user input
     IFS= read -r answer
 
-    # Trim leading/trailing whitespace (including newlines)
+    # Trim whitespace from both input and default
     answer="$(echo -n "$answer" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
     default="$(echo -n "$default" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
 
-    if [[ -z $answer && -n $default ]]; then
+    if [[ -z "$answer" && -n "$default" ]]; then
         printf "%s\n" "$default"
     else
         printf "%s\n" "$answer"
     fi
 }
 
-# ----------------------------------------------------------------------
-#  Password (silent) prompt
-# ----------------------------------------------------------------------
-# Prompt the user for a password (no echo).
-#   $1 – prompt message
-# Writes only the password to STDOUT; the prompt goes to STDERR.
-# ----------------------------------------------------------------------
+# Prompt user for password input (no echo)
+# Handles both interactive and non-interactive input
+# Usage: password=$(prompt_password "Enter password: ")
+# Arguments:
+#   $1 - prompt message to display
+# Returns: password via stdout
 prompt_password() {
-    local msg=$1
+    local msg="$1"
     local pwd
 
     # If input is from a terminal, disable echo
-    if [ -t 0 ]; then
+    if [[ -t 0 ]]; then
         printf "%s " "$msg" >&2
         IFS= read -s -r pwd
-        printf "\n"
+        printf "\n" >&2
     else
         # Non-interactive input (like in tests) - just read normally
-        IFS= read -r -p "$msg " pwd
+        IFS= read -r pwd
     fi
 
     # Always print password to stdout
     printf "%s\n" "$pwd"
 }
 
-
-# ----------------------------------------------------------------------
-#  Yes/No confirmation (wrapper around utils.sh `confirm`)
-# ----------------------------------------------------------------------
-# Prompt the user for a yes/no confirmation.
-#   $1 – prompt message
-#   $2 – optional default value (e.g. “y” or “n”)
-# Returns 0 (true) for “yes”, 1 (false) for “no”.
-# The prompt itself is sent to STDERR.
-# ----------------------------------------------------------------------
+# Yes/No confirmation prompt
+# Displays prompt and waits for y/n response
+# Usage: if prompt_confirm "Are you sure?"; then ...; fi
+# Arguments:
+#   $1 - confirmation message to display
+# Returns: 0 for yes, 1 for no
 prompt_confirm() {
-    local msg=$1
-    local default=$2
-    local answer
+    local msg="$1"
+    local response
 
-    if [[ -n $default ]]; then
-        printf "%s [%s]: " "$msg" "$default" >&2
-    else
-        printf "%s: " "$msg" >&2
-    fi
-
-    IFS= read -r answer
-
-    # If the user just presses <Enter>, fall back to the default (if any).
-    if [[ -z $answer && -n $default ]]; then
-        answer=$default
-    fi
-
-    case "${answer,,}" in
-        y|yes|true|1)  return 0 ;;
-        n|no|false|0)  return 1 ;;
-        *)             return 1 ;;   # Anything else is treated as “no”.
-    esac
+    while true; do
+        printf "%s [y/N]: " "$msg" >&2
+        IFS= read -r response
+        
+        case "${response,,}" in
+            y|yes) return 0 ;;
+            n|no|"") return 1 ;;
+            *) printf "Please answer yes or no.\n" >&2 ;;
+        esac
+    done
 }
 
-# ----------------------------------------------------------------------
-#  Simple numbered menu
-# ----------------------------------------------------------------------
-# Show a simple numbered menu and return the selected option.
-#   $1 – prompt text (optional, defaults to "Select an option")
-#   $2… – list of options
-# Returns:
-#   * selected option on stdout, exit status 0
-#   * empty string on EOF, exit status 1
-# Re‑asks automatically when the user enters an invalid number.
+# Yes/No confirmation with default to Yes
+# Similar to prompt_confirm but defaults to yes
+# Usage: if prompt_confirm_yes "Continue?"; then ...; fi
+# Arguments:
+#   $1 - confirmation message to display
+# Returns: 0 for yes (default), 1 for no
+prompt_confirm_yes() {
+    local msg="$1"
+    local response
+
+    while true; do
+        printf "%s [Y/n]: " "$msg" >&2
+        IFS= read -r response
+        
+        case "${response,,}" in
+            y|yes|"") return 0 ;;
+            n|no) return 1 ;;
+            *) printf "Please answer yes or no.\n" >&2 ;;
+        esac
+    done
+}
+
+# Display a simple numbered menu and get user selection
+# Usage: choice=$(prompt_menu "Select option:" "Option 1" "Option 2" "Option 3")
+# Arguments:
+#   $1 - menu title/prompt
+#   $2+ - menu options
+# Returns: selected option text via stdout, or empty string if cancelled
 prompt_menu() {
-    local prompt="${1:-Select an option}"
+    local title="$1"
     shift
     local options=("$@")
-    local count=${#options[@]}
+    local choice
+    local i
 
-    # Guard against calling without any options
-    if (( count == 0 )); then
-        log_error "prompt_menu: no options supplied"
+    if [[ ${#options[@]} -eq 0 ]]; then
+        echo "Error: No menu options provided" >&2
         return 1
     fi
 
     while true; do
-        #  ----- show the menu (to stderr) ---------------------------------
-        printf "%s:\n" "$prompt" >&2
+        printf "\n%s\n" "$title" >&2
         for i in "${!options[@]}"; do
-            printf "  %d) %s\n" $((i + 1)) "${options[i]}" >&2
+            printf "%2d) %s\n" $((i + 1)) "${options[i]}" >&2
         done
+        printf "%2s) %s\n" "q" "Quit" >&2
+        printf "\nSelect option [1-%d,q]: " ${#options[@]} >&2
 
-        # ----- read the choice --------------------------------------------
-        local choice
-        if ! read -r -p "Enter choice [1-${count}]: " choice; then
-            # EOF (Ctrl‑D) or read error → signal failure, no output
-            return 1
-        fi
+        IFS= read -r choice
 
-        # ----- trim whitespace ---------------------------------------------
-        choice="${choice#"${choice%%[![:space:]]*}"}"
-        choice="${choice%"${choice##*[![:space:]]}"}"
-
-        # ----- validate ----------------------------------------------------
-        if [[ $choice =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= count )); then
-            # valid → print the *selected option* on stdout
-            printf "%s" "${options[choice-1]}"
-            return 0
-        fi
-
-        # ----- invalid ------------------------------------------------------
-        log_warning "Invalid selection – please try again."
+        case "$choice" in
+            q|Q)
+                return 1
+                ;;
+            [1-9]|[1-9][0-9])
+                if [[ $choice -ge 1 && $choice -le ${#options[@]} ]]; then
+                    printf "%s\n" "${options[$((choice - 1))]}"
+                    return 0
+                else
+                    printf "Invalid selection. Please choose 1-%d or q.\n" ${#options[@]} >&2
+                fi
+                ;;
+            *)
+                printf "Invalid input. Please enter a number 1-%d or q.\n" ${#options[@]} >&2
+                ;;
+        esac
     done
 }
 
-# -----------------------------------------------------------------
-#  Export the public API
-# -----------------------------------------------------------------
-export -f prompt_input prompt_password prompt_confirm prompt_menu
+# Wait for user to press Enter to continue
+# Usage: prompt_pause "Press Enter to continue..."
+# Arguments:
+#   $1 - optional message to display (default: "Press Enter to continue...")
+prompt_pause() {
+    local msg="${1:-Press Enter to continue...}"
+    printf "%s" "$msg" >&2
+    IFS= read -r
+}
+
+# Prompt for numeric input with validation
+# Usage: number=$(prompt_number "Enter age: " 1 100)
+# Arguments:
+#   $1 - prompt message
+#   $2 - minimum value (optional)
+#   $3 - maximum value (optional)
+# Returns: validated number via stdout
+prompt_number() {
+    local msg="$1"
+    local min="${2:-}"
+    local max="${3:-}"
+    local input
+    local number
+
+    while true; do
+        printf "%s" "$msg" >&2
+        IFS= read -r input
+
+        # Check if input is a valid number
+        if [[ "$input" =~ ^-?[0-9]+$ ]]; then
+            number="$input"
+            
+            # Check minimum value
+            if [[ -n "$min" && $number -lt $min ]]; then
+                printf "Number must be at least %d.\n" "$min" >&2
+                continue
+            fi
+            
+            # Check maximum value
+            if [[ -n "$max" && $number -gt $max ]]; then
+                printf "Number must be at most %d.\n" "$max" >&2
+                continue
+            fi
+            
+            printf "%d\n" "$number"
+            return 0
+        else
+            printf "Please enter a valid number.\n" >&2
+        fi
+    done
+}
+
+export -f prompt_input prompt_password prompt_confirm prompt_confirm_yes prompt_menu prompt_pause prompt_number

@@ -20,7 +20,10 @@ readonly BASH_UTILS_SYSTEM_LOADED="true"
 # SYSTEM DETECTION FUNCTIONS
 #===============================================================================
 
-# Get operating system name
+# Detect and return the operating system name
+# Uses multiple detection methods for maximum compatibility
+# Usage: os_name=$(get_os_name)
+# Returns: operating system name string
 get_os_name() {
     if [[ -f /etc/os-release ]]; then
         . /etc/os-release
@@ -34,7 +37,10 @@ get_os_name() {
     fi
 }
 
-# Get operating system version
+# Detect and return the operating system version
+# Uses multiple detection methods for maximum compatibility
+# Usage: os_version=$(get_os_version)
+# Returns: operating system version string
 get_os_version() {
     if [[ -f /etc/os-release ]]; then
         . /etc/os-release

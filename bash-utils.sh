@@ -16,30 +16,34 @@ if [[ "${BASH_UTILS_LOADED:-}" == "true" ]]; then
 fi
 readonly BASH_UTILS_LOADED="true"
 
-# Get the directory where this script is located
-BASH_UTILS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/modules/"
+# Determine script location and module directory paths
+# This allows the library to work regardless of where it's sourced from
+BASH_UTILS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASH_UTILS_MODULES_DIR="${BASH_UTILS_DIR}/modules"
 
 #===============================================================================
 # LOAD UTILITY MODULES
 #===============================================================================
 
-# Source all utility modules in dependency order
+# Load all utility modules in proper dependency order
+# Each module checks for previous loading to prevent conflicts
+# Dependencies: config -> logging -> validation -> files/system/utils -> strings/prompts
 # shellcheck source=./modules/config.sh
-source "${BASH_UTILS_DIR}/config.sh"
+source "${BASH_UTILS_MODULES_DIR}/config.sh"
 # shellcheck source=./modules/logging.sh
-source "${BASH_UTILS_DIR}/logging.sh"
+source "${BASH_UTILS_MODULES_DIR}/logging.sh"
 # shellcheck source=./modules/validation.sh
-source "${BASH_UTILS_DIR}/validation.sh"
+source "${BASH_UTILS_MODULES_DIR}/validation.sh"
 # shellcheck source=./modules/files.sh
-source "${BASH_UTILS_DIR}/files.sh"
+source "${BASH_UTILS_MODULES_DIR}/files.sh"
 # shellcheck source=./modules/system.sh
-source "${BASH_UTILS_DIR}/system.sh"
+source "${BASH_UTILS_MODULES_DIR}/system.sh"
 # shellcheck source=./modules/utils.sh
-source "${BASH_UTILS_DIR}/utils.sh"
+source "${BASH_UTILS_MODULES_DIR}/utils.sh"
 # shellcheck source=./modules/strings.sh
-source "${BASH_UTILS_DIR}/strings.sh"
+source "${BASH_UTILS_MODULES_DIR}/strings.sh"
 # shellcheck source=./modules/prompts.sh
-source "${BASH_UTILS_DIR}/prompts.sh"
+source "${BASH_UTILS_MODULES_DIR}/prompts.sh"
 
 #===============================================================================
 # LIBRARY INFORMATION
@@ -51,30 +55,35 @@ bash_utils_info() {
 ${BASH_UTILS_NAME} v${BASH_UTILS_VERSION}
 
 Loaded Modules:
-  config.sh    - Configuration constants and color definitions
-  logging.sh   - Logging functions with different levels
-  validation.sh - Input validation and checking functions
-  files.sh     - File and directory manipulation functions
-  system.sh    - Operating system and hardware detection
-  utils.sh     - General utilities, signal handling, version management
+  config.sh      - Configuration constants and color definitions
+  logging.sh     - Logging functions with different levels and formatting
+  validation.sh  - Input validation and system checking functions
+  files.sh       - File and directory manipulation utilities
+  system.sh      - Operating system and hardware detection
+  utils.sh       - General utilities, signal handling, version management
+  strings.sh     - String manipulation and text processing utilities
+  prompts.sh     - User input and interaction functions
 
-Available functions:
+Available Functions:
   Logging: log_info, log_success, log_warning, log_error, log_debug, log_critical
   Validation: validate_file, validate_directory, validate_system_name, validate_email, validate_url
   System: get_os_name, get_os_version, auto_detect_system, command_exists, is_root, check_privileges
-  File operations: create_backup, ensure_directory, get_absolute_path, get_script_dir
+  File Operations: create_backup, ensure_directory, get_absolute_path, get_script_dir
   Utilities: confirm, retry, show_spinner, seconds_to_human, bytes_to_human, generate_random_string
-  Version comparison: is_semver, compare_versions
-  Signal handling: setup_signal_handlers
+  Version: is_semver, compare_versions
+  Signal Handling: setup_signal_handlers
+  String Operations: str_upper, str_lower, str_trim, str_contains, str_replace, str_split, str_join
+  User Prompts: prompt_input, prompt_password, prompt_confirm, prompt_menu, prompt_number
   
-Colors available: COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE, etc.
-Configuration: Set BASH_UTILS_VERBOSE=true for debug output
+Colors: COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE, COLOR_PURPLE, COLOR_CYAN, etc.
+Configuration: Set BASH_UTILS_VERBOSE=true for verbose output, BASH_UTILS_DEBUG=true for debug
 
-For full documentation, see the function definitions in the individual module files.
+For comprehensive documentation, see function definitions in individual module files.
 EOF
 }
 
-# Export the info function
+# Make the info function available to calling scripts
 export -f bash_utils_info
 
+# Log successful library loading (only in debug/verbose mode)
 log_debug "Bash Utility Library v${BASH_UTILS_VERSION} loaded successfully with all modules"

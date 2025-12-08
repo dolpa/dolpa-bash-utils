@@ -36,6 +36,8 @@ source "${BASH_UTILS_MODULES_DIR}/logging.sh"
 source "${BASH_UTILS_MODULES_DIR}/validation.sh"
 # shellcheck source=./modules/files.sh
 source "${BASH_UTILS_MODULES_DIR}/files.sh"
+# shellcheck source=./modules/filesystem.sh
+source "${BASH_UTILS_MODULES_DIR}/filesystem.sh"
 # shellcheck source=./modules/system.sh
 source "${BASH_UTILS_MODULES_DIR}/system.sh"
 # shellcheck source=./modules/utils.sh
@@ -44,6 +46,8 @@ source "${BASH_UTILS_MODULES_DIR}/utils.sh"
 source "${BASH_UTILS_MODULES_DIR}/strings.sh"
 # shellcheck source=./modules/prompts.sh
 source "${BASH_UTILS_MODULES_DIR}/prompts.sh"
+# shellcheck source=./modules/exec.sh
+source "${BASH_UTILS_MODULES_DIR}/exec.sh"
 
 #===============================================================================
 # LIBRARY INFORMATION
@@ -57,8 +61,10 @@ ${BASH_UTILS_NAME} v${BASH_UTILS_VERSION}
 Loaded Modules:
   config.sh      - Configuration constants and color definitions
   logging.sh     - Logging functions with different levels and formatting
+  exec.sh       - File and directory manipulation utilities
   validation.sh  - Input validation and system checking functions
   files.sh       - File and directory manipulation utilities
+  filesyustem.sh - File and directory manipulation utilities
   system.sh      - Operating system and hardware detection
   utils.sh       - General utilities, signal handling, version management
   strings.sh     - String manipulation and text processing utilities

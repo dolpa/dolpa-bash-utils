@@ -37,10 +37,12 @@ teardown() {
     [ "$BASH_UTILS_LOGGING_LOADED" = "true" ]
     [ "$BASH_UTILS_VALIDATION_LOADED" = "true" ]
     [ "$BASH_UTILS_FILES_LOADED" = "true" ]
+    [ "$BASH_UTILS_FILESYSTEM_LOADED" = "true" ]
     [ "$BASH_UTILS_SYSTEM_LOADED" = "true" ]
     [ "$BASH_UTILS_UTILITIES_LOADED" = "true" ]
     [ "$BASH_UTILS_STRINGS_LOADED" = "true" ]
     [ "$BASH_UTILS_PROMPTS_LOADED" = "true" ]
+    [ "$BASH_UTILS_EXEC_LOADED" = "true" ]
 }
 
 @test "bash_utils_info function is available" {

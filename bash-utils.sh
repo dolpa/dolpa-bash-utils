@@ -7,6 +7,19 @@
 # Author: dolpa (https://dolpa.me)
 # Version: main
 # License: Unlicense
+# 
+# Modules included:
+# - config.sh: Color definitions and configuration
+# - logging.sh: Comprehensive logging with levels and colors
+# - validation.sh: Input validation and sanitization
+# - files.sh: File backup and management utilities
+# - filesystem.sh: Comprehensive filesystem operations and path analysis
+# - system.sh: System detection and hardware information
+# - utils.sh: General utilities, retry logic, formatters
+# - strings.sh: String manipulation and text processing
+# - prompts.sh: Interactive user input and menus
+# - exec.sh: Process execution, background jobs, and timeout handling
+#
 # Usage: source this file in your bash scripts to load all utilities
 #===============================================================================
 
@@ -27,7 +40,19 @@ BASH_UTILS_MODULES_DIR="${BASH_UTILS_DIR}/modules"
 
 # Load all utility modules in proper dependency order
 # Each module checks for previous loading to prevent conflicts
-# Dependencies: config -> logging -> validation -> files/system/utils -> strings/prompts
+# Dependencies: config -> logging -> validation -> files/filesystem/system/utils -> strings/prompts -> exec
+# 
+# Module descriptions:
+# - config.sh: Core configuration and color definitions
+# - logging.sh: Logging framework with multiple levels
+# - validation.sh: Input validation and type checking
+# - files.sh: File backup and management operations
+# - filesystem.sh: Comprehensive filesystem operations, path analysis, and file manipulation
+# - system.sh: System detection and hardware information gathering
+# - utils.sh: General purpose utilities and helper functions
+# - strings.sh: String processing, manipulation, and formatting
+# - prompts.sh: Interactive user input, confirmations, and menus
+# - exec.sh: Process execution, background job management, and timeout handling
 # shellcheck source=./modules/config.sh
 source "${BASH_UTILS_MODULES_DIR}/config.sh"
 # shellcheck source=./modules/logging.sh
@@ -36,6 +61,8 @@ source "${BASH_UTILS_MODULES_DIR}/logging.sh"
 source "${BASH_UTILS_MODULES_DIR}/validation.sh"
 # shellcheck source=./modules/files.sh
 source "${BASH_UTILS_MODULES_DIR}/files.sh"
+# shellcheck source=./modules/filesystem.sh
+source "${BASH_UTILS_MODULES_DIR}/filesystem.sh"
 # shellcheck source=./modules/system.sh
 source "${BASH_UTILS_MODULES_DIR}/system.sh"
 # shellcheck source=./modules/utils.sh
@@ -44,6 +71,8 @@ source "${BASH_UTILS_MODULES_DIR}/utils.sh"
 source "${BASH_UTILS_MODULES_DIR}/strings.sh"
 # shellcheck source=./modules/prompts.sh
 source "${BASH_UTILS_MODULES_DIR}/prompts.sh"
+# shellcheck source=./modules/exec.sh
+source "${BASH_UTILS_MODULES_DIR}/exec.sh"
 
 #===============================================================================
 # LIBRARY INFORMATION
@@ -57,8 +86,10 @@ ${BASH_UTILS_NAME} v${BASH_UTILS_VERSION}
 Loaded Modules:
   config.sh      - Configuration constants and color definitions
   logging.sh     - Logging functions with different levels and formatting
+  exec.sh       - File and directory manipulation utilities
   validation.sh  - Input validation and system checking functions
   files.sh       - File and directory manipulation utilities
+  filesyustem.sh - File and directory manipulation utilities
   system.sh      - Operating system and hardware detection
   utils.sh       - General utilities, signal handling, version management
   strings.sh     - String manipulation and text processing utilities

@@ -7,7 +7,9 @@ A comprehensive collection of utility functions for bash scripts, providing logg
 bash-utils/
 ├── modules/
 │   ├── config.sh
+│   ├── exec.sh
 │   ├── files.sh
+│   ├── filesystem.sh
 │   ├── logging.sh
 │   ├── prompts.sh
 │   ├── strings.sh
@@ -16,7 +18,9 @@ bash-utils/
 │   └── validation.sh
 ├── tests/
 │   ├── test_config.bats
+│   ├── test_exec.bats
 │   ├── test_files.bats
+│   ├── test_filesystem.bats
 │   ├── test_helper.bats
 │   ├── test_integration.bats
 │   ├── test_logging.bats
@@ -38,7 +42,8 @@ bash-utils/
 - **Input Validation**: Functions for validating files, directories, emails, URLs, system names, etc.
 - **System Detection**: Auto-detect system information using DMI data
 - **File Operations**: Backup creation, directory management, path resolution
-- **FileSystem Operations**: the most common file‑system operations that a Bash utility library needs
+- **FileSystem Operations**: Comprehensive file‑system operations including file manipulation, permissions, symlinks, and path analysis
+- **Process Execution**: Background process management, command execution with capture, timeout handling, and process monitoring
 - **String Manipulation**: Comprehensive string processing utilities including case conversion, trimming, and validation
 - **User Interaction**: Interactive prompts, confirmations, password input, and menu selections
 - **Utility Functions**: Retry logic, human-readable formatting, random string generation
@@ -177,7 +182,9 @@ The library can be configured using environment variables:
 | `validate_url(url)` | Validate URL format |
 | `validate_port(port)` | Validate port number (1-65535) |
 
-### File Operations
+## File Operations
+
+### Public functions
 
 | Function | Description |
 |----------|-------------|
@@ -186,6 +193,174 @@ The library can be configured using environment variables:
 | `get_absolute_path(path)` | Get absolute path |
 | `get_script_dir()` | Get calling script's directory |
 | `get_script_name()` | Get calling script's name |
+
+## 📁 filesystem.sh – File‑system utilities
+
+The `filesystem.sh` module bundles a small set of safe, POSIX‑compatible helpers for dealing with files, directories and permissions. It is loaded automatically by `bash-utils.sh` when you source the library.
+
+### Public functions
+
+| Function | Description |
+|----------|-------------|
+| `fs_exists <path>` | Returns true if *any* file‑system object exists at `<path>`. |
+| `fs_is_file <path>` | True only for regular files. |
+| `fs_is_dir <path>` | True only for directories. |
+| `fs_is_symlink <path>` | Detects symbolic links. |
+| `fs_create_dir <path> [mode]` | Recursively creates a directory tree, optionally setting its mode (default `0755`). |
+| `fs_remove <path> [force]` | Deletes a file or directory; `force=true` uses `rm -rf`. |
+| `fs_copy <src> <dst> [preserve]` | Copies a file or directory; `preserve=true` keeps timestamps/ownership. |
+| `fs_move <src> <dst>` | Moves/renames a file or directory. |
+| `fs_perm_get <path>` | Prints the octal permission bits of `<path>`. |
+| `fs_perm_set <path> <mode>` | Sets the permission bits of `<path>` (e.g. `0644`). |
+
+## Filesystem Operations (filesystem.sh)
+
+The `filesystem.sh` module provides comprehensive file and directory management utilities with proper error handling and logging.
+
+### Core Functions
+
+| Function | Description |
+|----------|-------------|
+| `create_temp_file()` | Create a temporary file and return its path |
+| `create_temp_dir()` | Create a temporary directory and return its path |
+| `get_file_size(path)` | Get file size in bytes |
+| `get_file_mod_time(path)` | Get file modification timestamp |
+| `get_file_perm(path)` | Get file permissions in octal format |
+| `get_file_owner(path)` | Get file owner name |
+| `get_file_group(path)` | Get file group name |
+| `copy_file(src, dest)` | Copy a file |
+| `move_file(src, dest)` | Move/rename a file |
+| `delete_file(path)` | Delete a file |
+| `delete_directory(path)` | Delete a directory |
+| `touch_file(path)` | Create or update file timestamp |
+| `write_file(path, content)` | Write content to file |
+| `append_to_file(path, content)` | Append content to file |
+| `truncate_file(path)` | Truncate file to zero length |
+| `chmod_file(path, mode)` | Change file permissions |
+| `chown_file(path, owner)` | Change file owner |
+| `chgrp_file(path, group)` | Change file group |
+| `symlink_file(target, link)` | Create symbolic link |
+| `hardlink_file(target, link)` | Create hard link |
+| `readlink_path(path)` | Read symbolic link target |
+
+### Path Analysis
+
+| Function | Description |
+|----------|-------------|
+| `get_file_extension(path)` | Extract file extension |
+| `get_filename_without_extension(path)` | Get filename without extension |
+| `get_basename(path)` | Get basename of path |
+| `get_dirname(path)` | Get directory name of path |
+| `get_absolute_path(path)` | Convert to absolute path |
+| `get_canonical_path(path)` | Get canonical path (resolve symlinks) |
+
+### Path Type Predicates
+
+| Function | Description |
+|----------|-------------|
+| `is_path_writable(path)` | Check if path is writable |
+| `is_path_readable(path)` | Check if path is readable |
+| `is_path_executable(path)` | Check if path is executable |
+| `is_path_hidden(path)` | Check if path is hidden (starts with .) |
+| `is_path_symlink(path)` | Check if path is a symbolic link |
+| `is_path_directory(path)` | Check if path is a directory |
+| `is_path_file(path)` | Check if path is a regular file |
+| `is_path_fifo(path)` | Check if path is a FIFO |
+| `is_path_socket(path)` | Check if path is a socket |
+| `is_path_block(path)` | Check if path is a block device |
+| `is_path_char(path)` | Check if path is a character device |
+| `is_path_empty(path)` | Check if file exists and has zero size |
+| `is_path_nonempty(path)` | Check if file exists and has size > 0 |
+
+### Example Usage
+```bash
+source "./modules/filesystem.sh"
+
+# Create temporary files
+temp_file=$(create_temp_file)
+temp_dir=$(create_temp_dir)
+
+# File operations
+chmod_file "$temp_file" 644
+chown_file "$temp_file" "$(whoami)"
+write_file "$temp_file" "Hello World"
+
+# Path analysis
+if is_path_file "$temp_file"; then
+    size=$(get_file_size "$temp_file")
+    perm=$(get_file_perm "$temp_file")
+    echo "File size: $size bytes, permissions: $perm"
+fi
+
+# Cleanup
+delete_file "$temp_file"
+delete_directory "$temp_dir"
+```
+
+## Process Execution (exec.sh)
+
+The `exec.sh` module provides utilities for running commands, managing background processes, and handling process execution with timeouts and capture capabilities.
+
+### Core Functions
+
+| Function | Description |
+|----------|-------------|
+| `exec_run(cmd...)` | Execute command and return exit status |
+| `exec_run_capture(out_var, err_var, cmd...)` | Execute command and capture stdout/stderr in variables |
+| `exec_background(cmd...)` | Start command in background and return PID |
+| `exec_is_running(pid)` | Check if process is still running |
+| `exec_kill(pid, [signal])` | Send signal to process (default: TERM) |
+| `exec_wait(pid, [timeout])` | Wait for process to finish with optional timeout |
+| `exec_run_with_timeout(timeout, cmd...)` | Run command with timeout (kills if exceeds) |
+
+### Example Usage
+```bash
+source "./modules/exec.sh"
+
+# Basic command execution
+exec_run ls -la /tmp
+echo "Command exited with status: $?"
+
+# Capture output
+stdout=""
+stderr=""
+exec_run_capture stdout stderr ls /nonexistent
+echo "STDOUT: $stdout"
+echo "STDERR: $stderr"
+
+# Background process management
+pid=$(exec_background sleep 30)
+echo "Started background process: $pid"
+
+if exec_is_running "$pid"; then
+    echo "Process is running"
+    exec_kill "$pid"
+fi
+
+# Wait with timeout
+pid=$(exec_background sleep 5)
+if exec_wait "$pid" 10; then
+    echo "Process finished within timeout"
+else
+    echo "Process timed out"
+    exec_kill "$pid"
+fi
+
+# Run with timeout
+if exec_run_with_timeout 5 curl "https://example.com"; then
+    echo "Command completed within timeout"
+else
+    echo "Command timed out or failed"
+fi
+```
+
+### Dependencies
+
+This module relies on a few internal helpers from the utils library:
+
+- **`config.sh`** – Provides colour settings and verbosity flags used throughout the module.
+- **`logging.sh`** – All filesystem-related actions are recorded using `log_info` and `log_error`.
+- **`validation.sh`** – Supplies internal validation functions such as `validate_file` and `validate_directory`, used to ensure safe and predictable behaviour.
 
 ### System Detection
 
@@ -215,32 +390,7 @@ The library can be configured using environment variables:
 | `setup_signal_handlers([cleanup_func])` | Set up EXIT, INT, TERM handlers |
 | `cleanup_on_exit()` | Default cleanup function |
 
-## 📁 filesystem.sh – File‑system utilities
 
-The `filesystem.sh` module bundles a small set of safe, POSIX‑compatible helpers for dealing with files, directories and permissions. It is loaded automatically by `bash-utils.sh` when you source the library.
-
-### Public functions
-
-| Function | Description |
-|----------|-------------|
-| `fs_exists <path>` | Returns true if *any* file‑system object exists at `<path>`. |
-| `fs_is_file <path>` | True only for regular files. |
-| `fs_is_dir <path>` | True only for directories. |
-| `fs_is_symlink <path>` | Detects symbolic links. |
-| `fs_create_dir <path> [mode]` | Recursively creates a directory tree, optionally setting its mode (default `0755`). |
-| `fs_remove <path> [force]` | Deletes a file or directory; `force=true` uses `rm -rf`. |
-| `fs_copy <src> <dst> [preserve]` | Copies a file or directory; `preserve=true` keeps timestamps/ownership. |
-| `fs_move <src> <dst>` | Moves/renames a file or directory. |
-| `fs_perm_get <path>` | Prints the octal permission bits of `<path>`. |
-| `fs_perm_set <path> <mode>` | Sets the permission bits of `<path>` (e.g. `0644`). |
-
-### Dependencies
-
-This module relies on a few internal helpers from the utils library:
-
-- **`config.sh`** – Provides colour settings and verbosity flags used throughout the module.
-- **`logging.sh`** – All filesystem-related actions are recorded using `log_info` and `log_error`.
-- **`validation.sh`** – Supplies internal validation functions such as `validate_file` and `validate_directory`, used to ensure safe and predictable behaviour.
 
 
 

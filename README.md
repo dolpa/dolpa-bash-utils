@@ -7,7 +7,9 @@ A comprehensive collection of utility functions for bash scripts, providing logg
 bash-utils/
 ├── modules/
 │   ├── config.sh
+│   ├── exec.sh
 │   ├── files.sh
+│   ├── filesystem.sh
 │   ├── logging.sh
 │   ├── prompts.sh
 │   ├── strings.sh
@@ -16,7 +18,9 @@ bash-utils/
 │   └── validation.sh
 ├── tests/
 │   ├── test_config.bats
+│   ├── test_exec.bats
 │   ├── test_files.bats
+│   ├── test_filesystem.bats
 │   ├── test_helper.bats
 │   ├── test_integration.bats
 │   ├── test_logging.bats
@@ -177,7 +181,9 @@ The library can be configured using environment variables:
 | `validate_url(url)` | Validate URL format |
 | `validate_port(port)` | Validate port number (1-65535) |
 
-### File Operations
+## File Operations
+
+### Public functions
 
 | Function | Description |
 |----------|-------------|
@@ -186,6 +192,33 @@ The library can be configured using environment variables:
 | `get_absolute_path(path)` | Get absolute path |
 | `get_script_dir()` | Get calling script's directory |
 | `get_script_name()` | Get calling script's name |
+
+## 📁 filesystem.sh – File‑system utilities
+
+The `filesystem.sh` module bundles a small set of safe, POSIX‑compatible helpers for dealing with files, directories and permissions. It is loaded automatically by `bash-utils.sh` when you source the library.
+
+### Public functions
+
+| Function | Description |
+|----------|-------------|
+| `fs_exists <path>` | Returns true if *any* file‑system object exists at `<path>`. |
+| `fs_is_file <path>` | True only for regular files. |
+| `fs_is_dir <path>` | True only for directories. |
+| `fs_is_symlink <path>` | Detects symbolic links. |
+| `fs_create_dir <path> [mode]` | Recursively creates a directory tree, optionally setting its mode (default `0755`). |
+| `fs_remove <path> [force]` | Deletes a file or directory; `force=true` uses `rm -rf`. |
+| `fs_copy <src> <dst> [preserve]` | Copies a file or directory; `preserve=true` keeps timestamps/ownership. |
+| `fs_move <src> <dst>` | Moves/renames a file or directory. |
+| `fs_perm_get <path>` | Prints the octal permission bits of `<path>`. |
+| `fs_perm_set <path> <mode>` | Sets the permission bits of `<path>` (e.g. `0644`). |
+
+### Dependencies
+
+This module relies on a few internal helpers from the utils library:
+
+- **`config.sh`** – Provides colour settings and verbosity flags used throughout the module.
+- **`logging.sh`** – All filesystem-related actions are recorded using `log_info` and `log_error`.
+- **`validation.sh`** – Supplies internal validation functions such as `validate_file` and `validate_directory`, used to ensure safe and predictable behaviour.
 
 ### System Detection
 
@@ -215,32 +248,7 @@ The library can be configured using environment variables:
 | `setup_signal_handlers([cleanup_func])` | Set up EXIT, INT, TERM handlers |
 | `cleanup_on_exit()` | Default cleanup function |
 
-## 📁 filesystem.sh – File‑system utilities
 
-The `filesystem.sh` module bundles a small set of safe, POSIX‑compatible helpers for dealing with files, directories and permissions. It is loaded automatically by `bash-utils.sh` when you source the library.
-
-### Public functions
-
-| Function | Description |
-|----------|-------------|
-| `fs_exists <path>` | Returns true if *any* file‑system object exists at `<path>`. |
-| `fs_is_file <path>` | True only for regular files. |
-| `fs_is_dir <path>` | True only for directories. |
-| `fs_is_symlink <path>` | Detects symbolic links. |
-| `fs_create_dir <path> [mode]` | Recursively creates a directory tree, optionally setting its mode (default `0755`). |
-| `fs_remove <path> [force]` | Deletes a file or directory; `force=true` uses `rm -rf`. |
-| `fs_copy <src> <dst> [preserve]` | Copies a file or directory; `preserve=true` keeps timestamps/ownership. |
-| `fs_move <src> <dst>` | Moves/renames a file or directory. |
-| `fs_perm_get <path>` | Prints the octal permission bits of `<path>`. |
-| `fs_perm_set <path> <mode>` | Sets the permission bits of `<path>` (e.g. `0644`). |
-
-### Dependencies
-
-This module relies on a few internal helpers from the utils library:
-
-- **`config.sh`** – Provides colour settings and verbosity flags used throughout the module.
-- **`logging.sh`** – All filesystem-related actions are recorded using `log_info` and `log_error`.
-- **`validation.sh`** – Supplies internal validation functions such as `validate_file` and `validate_directory`, used to ensure safe and predictable behaviour.
 
 
 

@@ -73,6 +73,8 @@ source "${BASH_UTILS_MODULES_DIR}/strings.sh"
 source "${BASH_UTILS_MODULES_DIR}/prompts.sh"
 # shellcheck source=./modules/exec.sh
 source "${BASH_UTILS_MODULES_DIR}/exec.sh"
+# shellcheck source=./modules/network.sh
+source "${BASH_UTILS_MODULES_DIR}/network.sh"
 
 #===============================================================================
 # LIBRARY INFORMATION

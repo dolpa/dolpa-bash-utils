@@ -34,13 +34,13 @@ readonly BASH_UTILS_APPLICATIONS_LOADED=true
 # Load required modules – config.sh must be first, then logging,
 # validation, system, utils, and exec for various operations.
 # ------------------------------------------------------------------
-source "${BASH_SOURCE[0]%/*}/config.sh"
-source "${BASH_SOURCE[0]%/*}/logging.sh"
-source "${BASH_SOURCE[0]%/*}/validation.sh"
-source "${BASH_SOURCE[0]%/*}/system.sh"
-source "${BASH_SOURCE[0]%/*}/utils.sh"
-source "${BASH_SOURCE[0]%/*}/exec.sh"
-source "${BASH_SOURCE[0]%/*}/network.sh"
+source "${_BASH_UTILS_MODULE_DIR}/../modules/config.sh"
+source "${_BASH_UTILS_MODULE_DIR}/../modules/logging.sh"
+source "${_BASH_UTILS_MODULE_DIR}/../modules/validation.sh"
+source "${_BASH_UTILS_MODULE_DIR}/../modules/system.sh"
+source "${_BASH_UTILS_MODULE_DIR}/../modules/utils.sh"
+source "${_BASH_UTILS_MODULE_DIR}/../modules/exec.sh"
+# source "${_BASH_UTILS_MODULE_DIR}/../modules/network.sh"
 
 #=====================================================================
 # INTERNAL HELPER FUNCTIONS

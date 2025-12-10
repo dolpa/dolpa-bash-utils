@@ -24,7 +24,7 @@ setup() {
     source "${BATS_TEST_DIRNAME}/../modules/system.sh"
     source "${BATS_TEST_DIRNAME}/../modules/utils.sh"
     source "${BATS_TEST_DIRNAME}/../modules/exec.sh"
-    source "${BATS_TEST_DIRNAME}/../modules/network.sh"
+    # source "${BATS_TEST_DIRNAME}/../modules/network.sh"
     source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
 
     # Ensure deterministic output – no colour codes.
@@ -125,6 +125,7 @@ mock_download_file_failure() {
 # Verify the module loads correctly and the loaded flag is set.
 # ------------------------------------------------------------------
 @test "applications module reports that it has been loaded" {
+    run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
     [ -n "${BASH_UTILS_APPLICATIONS_LOADED:-}" ]
 }
 
@@ -132,17 +133,20 @@ mock_download_file_failure() {
 # app_is_installed() tests
 # ------------------------------------------------------------------
 @test "app_is_installed fails with missing argument" {
+    run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
     run app_is_installed
     [ "$status" -eq 1 ]
 }
 
 @test "app_is_installed returns true for existing command" {
+    run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
     # Use a command that should exist on all systems
     run app_is_installed "bash"
     [ "$status" -eq 0 ]
 }
 
 @test "app_is_installed returns false for non-existing command" {
+    run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
     run app_is_installed "nonexistent_application_that_does_not_exist"
     [ "$status" -eq 1 ]
 }
@@ -151,6 +155,7 @@ mock_download_file_failure() {
 # app_install_docker() tests with mocks
 # ------------------------------------------------------------------
 @test "app_install_docker fails without root privileges" {
+    run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
     # Mock is_root to return false
     is_root() { mock_is_root_false; }
     
@@ -159,6 +164,7 @@ mock_download_file_failure() {
 }
 
 @test "app_install_docker skips installation if docker already installed" {
+    run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
     # Mock functions for this test
     is_root() { mock_is_root_true; }
     command_exists() { mock_command_exists_docker_true "$@"; }
@@ -168,6 +174,7 @@ mock_download_file_failure() {
 }
 
 @test "app_install_docker fails when OS cannot be determined" {
+    run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
     # Mock functions
     is_root() { mock_is_root_true; }
     command_exists() { mock_command_exists_docker_false "$@"; }
@@ -200,6 +207,7 @@ mock_download_file_failure() {
 # app_remove_docker() tests with mocks
 # ------------------------------------------------------------------
 @test "app_remove_docker fails without root privileges" {
+    run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
     # Mock is_root to return false
     is_root() { mock_is_root_false; }
     
@@ -208,6 +216,7 @@ mock_download_file_failure() {
 }
 
 @test "app_remove_docker succeeds when docker is not installed" {
+    run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
     # Mock functions
     is_root() { mock_is_root_true; }
     command_exists() { mock_command_exists_docker_false "$@"; }
@@ -217,6 +226,7 @@ mock_download_file_failure() {
 }
 
 @test "app_remove_docker attempts to remove docker when installed" {
+    run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
     # Mock functions
     is_root() { mock_is_root_true; }
     command_exists() { mock_command_exists_docker_true "$@"; }
@@ -232,6 +242,7 @@ mock_download_file_failure() {
 # we want to test the real logic
 # ------------------------------------------------------------------
 @test "_apps_detect_package_manager detects apt when available" {
+    run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
     # Mock command_exists to simulate apt-get being available
     command_exists() {
         if [[ "$1" == "apt-get" ]]; then
@@ -246,6 +257,7 @@ mock_download_file_failure() {
 }
 
 @test "_apps_detect_package_manager detects dnf when available" {
+    run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
     # Mock command_exists to simulate dnf being available
     command_exists() {
         if [[ "$1" == "dnf" ]]; then
@@ -260,6 +272,7 @@ mock_download_file_failure() {
 }
 
 @test "_apps_detect_package_manager fails when no package manager available" {
+    run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
     # Mock command_exists to simulate no package managers
     command_exists() { return 1; }
     
@@ -271,6 +284,7 @@ mock_download_file_failure() {
 # Integration-style test with comprehensive mocking
 # ------------------------------------------------------------------
 @test "app_install_docker full flow with apt package manager (mocked)" {
+    run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
     # Set up comprehensive mocks for full Docker installation flow
     is_root() { return 0; }
     
@@ -346,11 +360,13 @@ mock_download_file_failure() {
 # Error handling tests
 # ------------------------------------------------------------------
 @test "_apps_remove_packages handles empty package list gracefully" {
+    run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
     run _apps_remove_packages
     [ "$status" -eq 0 ]
 }
 
 @test "_apps_install_packages fails with empty package list" {
+    run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
     run _apps_install_packages
     [ "$status" -eq 1 ]
 }

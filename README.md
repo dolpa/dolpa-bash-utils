@@ -6,6 +6,7 @@ A comprehensive collection of utility functions for bash scripts, providing logg
 ```
 bash-utils/
 ├── modules/
+│   ├── applications.sh
 │   ├── config.sh
 │   ├── exec.sh
 │   ├── files.sh
@@ -18,6 +19,7 @@ bash-utils/
 │   ├── utils.sh
 │   └── validation.sh
 ├── tests/
+│   ├── test_applications.bats
 │   ├── test_config.bats
 │   ├── test_exec.bats
 │   ├── test_files.bats
@@ -47,6 +49,7 @@ bash-utils/
 - **FileSystem Operations**: Comprehensive file‑system operations including file manipulation, permissions, symlinks, and path analysis
 - **Network Operations**: Network utilities including ping, hostname resolution, port checking, file downloads, and URL validation
 - **Process Execution**: Background process management, command execution with capture, timeout handling, and process monitoring
+- **Application Management**: Install, remove, and manage applications across different Linux distributions (Docker support included)
 - **String Manipulation**: Comprehensive string processing utilities including case conversion, trimming, and validation
 - **User Interaction**: Interactive prompts, confirmations, password input, and menu selections
 - **Utility Functions**: Retry logic, human-readable formatting, random string generation
@@ -475,6 +478,84 @@ fi
 # Clean up on exit
 cleanup_on_exit() { rm -rf "$WORKDIR"; }
 setup_signal_handlers   # from utils.sh – ensures the cleanup runs on SIGINT/SIGTERM
+
+## Application Management (applications.sh)
+
+The `applications.sh` module provides utilities for installing, removing, and managing applications across different Linux distributions. Currently supports Docker Engine with plans for additional applications.
+
+### Core Functions
+
+| Function | Description |
+|----------|-------------|
+| `app_is_installed(app)` | Check if an application is installed and available |
+| `app_install_docker()` | Install Docker Engine on supported Linux distributions |
+| `app_remove_docker()` | Remove Docker Engine and related components |
+
+### Supported Distributions
+
+| Distribution | Package Manager | Docker Support |
+|--------------|----------------|----------------|
+| Ubuntu/Debian | APT | ✓ |
+| RHEL/CentOS/Fedora | DNF/YUM | ✓ |
+| Arch Linux | Pacman | Planned |
+| openSUSE | Zypper | Planned |
+
+### Example Usage
+```bash
+source "./modules/applications.sh"
+
+# Check if an application is installed
+if app_is_installed "docker"; then
+    echo "Docker is already installed"
+else
+    echo "Docker is not installed"
+fi
+
+# Install Docker (requires root privileges)
+if app_install_docker; then
+    echo "Docker installation completed successfully"
+    echo "Please log out and log back in for group changes to take effect"
+else
+    echo "Docker installation failed"
+fi
+
+# Remove Docker (requires root privileges)
+if app_remove_docker; then
+    echo "Docker removed successfully"
+else
+    echo "Docker removal failed"
+fi
+
+# Verify installation
+if app_is_installed "docker"; then
+    docker --version
+    systemctl status docker
+fi
+```
+
+### Docker Installation Process
+
+The `app_install_docker()` function performs these steps:
+
+1. **Prerequisites Check**: Verifies root privileges and OS compatibility
+2. **Conflict Removal**: Removes conflicting packages (docker.io, podman-docker, etc.)
+3. **Repository Setup**: Adds Docker's official repository with GPG key verification
+4. **Package Installation**: Installs Docker CE, CLI, containerd, and plugins
+5. **Service Configuration**: Enables and starts Docker service
+6. **User Configuration**: Adds current user to docker group
+7. **Verification**: Confirms installation success
+
+### Dependencies
+
+This module relies on several library components:
+
+- **`config.sh`** – Provides color settings and configuration constants
+- **`logging.sh`** – All operations are logged with appropriate levels
+- **`validation.sh`** – Input validation and system checking functions
+- **`system.sh`** – OS detection and system information gathering
+- **`utils.sh`** – Utility functions like command_exists and is_root
+- **`exec.sh`** – Command execution with proper error handling
+- **`network.sh`** – File downloads and connectivity verification
 
 ### Colors
 

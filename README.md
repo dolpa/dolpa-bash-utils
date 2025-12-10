@@ -360,6 +360,60 @@ else
 fi
 ```
 
+## Network Operations (network.sh)
+
+The `network.sh` module provides utilities for network operations including connectivity testing, hostname resolution, port checking, file downloads, and URL validation.
+
+### Core Functions
+
+| Function | Description |
+|----------|-------------|
+| `ping_host(host, [count])` | Ping a remote host using system ping binary |
+| `resolve_ip(hostname)` | Resolve a hostname to an IP address |
+| `is_port_open(host, port)` | Test whether a TCP port is open using netcat |
+| `download_file(url, dest)` | Download a remote file to local destination |
+| `check_url(url)` | Perform HEAD request to verify URL is reachable |
+| `get_public_ip()` | Retrieve the public IP address of current machine |
+
+### Configuration
+
+| Variable | Description | Default |
+|----------|-------------|----------|
+| `BASH_UTILS_NETWORK_TIMEOUT` | Timeout for network operations (seconds) | `5` |
+
+### Example Usage
+```bash
+source "./modules/network.sh"
+
+# Test connectivity
+if ping_host "google.com"; then
+    echo "Internet connection available"
+fi
+
+# Resolve hostname
+ip=$(resolve_ip "github.com")
+echo "GitHub IP: $ip"
+
+# Check if port is open
+if is_port_open "github.com" 443; then
+    echo "HTTPS port is open"
+fi
+
+# Download file
+if download_file "https://example.com/file.txt" "/tmp/download.txt"; then
+    echo "File downloaded successfully"
+fi
+
+# Verify URL is reachable
+if check_url "https://api.github.com"; then
+    echo "API endpoint is accessible"
+fi
+
+# Get public IP
+public_ip=$(get_public_ip)
+echo "Your public IP: $public_ip"
+```
+
 ### Dependencies
 
 This module relies on a few internal helpers from the utils library:

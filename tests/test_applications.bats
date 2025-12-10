@@ -46,6 +46,23 @@ setup() {
     if declare -f download_file >/dev/null; then
         eval "_original_download_file() $(declare -f download_file | sed 1d)"
     fi
+
+    __OS_RELEASE_CONTENT=$(cat <<'EOF'
+PRETTY_NAME="Ubuntu 25.10"
+NAME="Ubuntu"
+VERSION_ID="25.10"
+VERSION="25.10 (Questing Quokka)"
+VERSION_CODENAME=questing
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=questing
+LOGO=ubuntu-logo
+EOF
+)
 }
 
 # ------------------------------------------------------------------
@@ -156,6 +173,7 @@ mock_download_file_failure() {
 # ------------------------------------------------------------------
 @test "app_install_docker fails without root privileges" {
     run source "${BATS_TEST_DIRNAME}/../modules/applications.sh"
+    run bash -c "echo $OS_RELEASE_CONTENT > '${TEST_TEMP_DIR}/etc/os-release'"
     # Mock is_root to return false
     is_root() { mock_is_root_false; }
     
@@ -336,8 +354,7 @@ mock_download_file_failure() {
     # Create mock /etc/os-release
     export BATS_TMPDIR="${TEST_TEMP_DIR}"
     mkdir -p "${TEST_TEMP_DIR}/etc"
-    echo 'ID=ubuntu' > "${TEST_TEMP_DIR}/etc/os-release"
-    echo 'VERSION_CODENAME=focal' >> "${TEST_TEMP_DIR}/etc/os-release"
+    run bash -c "echo $OS_RELEASE_CONTENT > '${TEST_TEMP_DIR}/etc/os-release'"
     
     # Override file check to use our mock
     test_file_exists() {

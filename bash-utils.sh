@@ -9,11 +9,13 @@
 # License: Unlicense
 # 
 # Modules included:
+# - applications.sh: Application installation and management utilities
 # - config.sh: Color definitions and configuration
 # - logging.sh: Comprehensive logging with levels and colors
 # - validation.sh: Input validation and sanitization
 # - files.sh: File backup and management utilities
 # - filesystem.sh: Comprehensive filesystem operations and path analysis
+# - network.sh: Network utilities for connectivity and file transfers
 # - system.sh: System detection and hardware information
 # - utils.sh: General utilities, retry logic, formatters
 # - strings.sh: String manipulation and text processing
@@ -40,7 +42,7 @@ BASH_UTILS_MODULES_DIR="${BASH_UTILS_DIR}/modules"
 
 # Load all utility modules in proper dependency order
 # Each module checks for previous loading to prevent conflicts
-# Dependencies: config -> logging -> validation -> files/filesystem/system/utils -> strings/prompts -> exec
+# Dependencies: config -> logging -> validation -> files/filesystem/network/system/utils -> strings/prompts -> exec -> applications
 # 
 # Module descriptions:
 # - config.sh: Core configuration and color definitions
@@ -48,11 +50,13 @@ BASH_UTILS_MODULES_DIR="${BASH_UTILS_DIR}/modules"
 # - validation.sh: Input validation and type checking
 # - files.sh: File backup and management operations
 # - filesystem.sh: Comprehensive filesystem operations, path analysis, and file manipulation
+# - network.sh: Network utilities for connectivity, resolution, and file transfers
 # - system.sh: System detection and hardware information gathering
 # - utils.sh: General purpose utilities and helper functions
 # - strings.sh: String processing, manipulation, and formatting
 # - prompts.sh: Interactive user input, confirmations, and menus
 # - exec.sh: Process execution, background job management, and timeout handling
+# - applications.sh: Application installation and management across Linux distributions
 # shellcheck source=./modules/config.sh
 source "${BASH_UTILS_MODULES_DIR}/config.sh"
 # shellcheck source=./modules/logging.sh
@@ -73,6 +77,8 @@ source "${BASH_UTILS_MODULES_DIR}/strings.sh"
 source "${BASH_UTILS_MODULES_DIR}/prompts.sh"
 # shellcheck source=./modules/exec.sh
 source "${BASH_UTILS_MODULES_DIR}/exec.sh"
+# shellcheck source=./modules/applications.sh
+source "${BASH_UTILS_MODULES_DIR}/applications.sh"
 
 #===============================================================================
 # LIBRARY INFORMATION
@@ -84,22 +90,25 @@ bash_utils_info() {
 ${BASH_UTILS_NAME} v${BASH_UTILS_VERSION}
 
 Loaded Modules:
+  applications.sh - Application installation and management utilities
   config.sh      - Configuration constants and color definitions
   logging.sh     - Logging functions with different levels and formatting
-  exec.sh       - File and directory manipulation utilities
   validation.sh  - Input validation and system checking functions
   files.sh       - File and directory manipulation utilities
-  filesyustem.sh - File and directory manipulation utilities
+  filesystem.sh  - Comprehensive filesystem operations and path analysis
+  network.sh     - Network utilities for connectivity and file transfers
   system.sh      - Operating system and hardware detection
   utils.sh       - General utilities, signal handling, version management
   strings.sh     - String manipulation and text processing utilities
   prompts.sh     - User input and interaction functions
+  exec.sh        - Process execution and background job management
 
 Available Functions:
   Logging: log_info, log_success, log_warning, log_error, log_debug, log_critical
   Validation: validate_file, validate_directory, validate_system_name, validate_email, validate_url
   System: get_os_name, get_os_version, auto_detect_system, command_exists, is_root, check_privileges
   File Operations: create_backup, ensure_directory, get_absolute_path, get_script_dir
+  Applications: app_is_installed, app_install_docker, app_remove_docker
   Utilities: confirm, retry, show_spinner, seconds_to_human, bytes_to_human, generate_random_string
   Version: is_semver, compare_versions
   Signal Handling: setup_signal_handlers

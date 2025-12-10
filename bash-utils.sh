@@ -14,6 +14,7 @@
 # - validation.sh: Input validation and sanitization
 # - files.sh: File backup and management utilities
 # - filesystem.sh: Comprehensive filesystem operations and path analysis
+# - network.sh: Network utilities for connectivity and file transfers
 # - system.sh: System detection and hardware information
 # - utils.sh: General utilities, retry logic, formatters
 # - strings.sh: String manipulation and text processing
@@ -40,7 +41,7 @@ BASH_UTILS_MODULES_DIR="${BASH_UTILS_DIR}/modules"
 
 # Load all utility modules in proper dependency order
 # Each module checks for previous loading to prevent conflicts
-# Dependencies: config -> logging -> validation -> files/filesystem/system/utils -> strings/prompts -> exec
+# Dependencies: config -> logging -> validation -> files/filesystem/network/system/utils -> strings/prompts -> exec
 # 
 # Module descriptions:
 # - config.sh: Core configuration and color definitions
@@ -48,6 +49,7 @@ BASH_UTILS_MODULES_DIR="${BASH_UTILS_DIR}/modules"
 # - validation.sh: Input validation and type checking
 # - files.sh: File backup and management operations
 # - filesystem.sh: Comprehensive filesystem operations, path analysis, and file manipulation
+# - network.sh: Network utilities for connectivity, resolution, and file transfers
 # - system.sh: System detection and hardware information gathering
 # - utils.sh: General purpose utilities and helper functions
 # - strings.sh: String processing, manipulation, and formatting
@@ -73,6 +75,8 @@ source "${BASH_UTILS_MODULES_DIR}/strings.sh"
 source "${BASH_UTILS_MODULES_DIR}/prompts.sh"
 # shellcheck source=./modules/exec.sh
 source "${BASH_UTILS_MODULES_DIR}/exec.sh"
+# shellcheck source=./modules/network.sh
+source "${BASH_UTILS_MODULES_DIR}/network.sh"
 
 #===============================================================================
 # LIBRARY INFORMATION
@@ -86,14 +90,15 @@ ${BASH_UTILS_NAME} v${BASH_UTILS_VERSION}
 Loaded Modules:
   config.sh      - Configuration constants and color definitions
   logging.sh     - Logging functions with different levels and formatting
-  exec.sh       - File and directory manipulation utilities
   validation.sh  - Input validation and system checking functions
   files.sh       - File and directory manipulation utilities
-  filesyustem.sh - File and directory manipulation utilities
+  filesystem.sh  - Comprehensive filesystem operations and path analysis
+  network.sh     - Network utilities for connectivity and file transfers
   system.sh      - Operating system and hardware detection
   utils.sh       - General utilities, signal handling, version management
   strings.sh     - String manipulation and text processing utilities
   prompts.sh     - User input and interaction functions
+  exec.sh        - Process execution and background job management
 
 Available Functions:
   Logging: log_info, log_success, log_warning, log_error, log_debug, log_critical

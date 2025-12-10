@@ -11,6 +11,7 @@ bash-utils/
 │   ├── files.sh
 │   ├── filesystem.sh
 │   ├── logging.sh
+│   ├── network.sh
 │   ├── prompts.sh
 │   ├── strings.sh
 │   ├── system.sh
@@ -24,6 +25,7 @@ bash-utils/
 │   ├── test_helper.bats
 │   ├── test_integration.bats
 │   ├── test_logging.bats
+│   ├── test_network.bats
 │   ├── test_prompts.bats
 │   ├── test_strings.bats
 │   ├── test_system.bats
@@ -43,6 +45,7 @@ bash-utils/
 - **System Detection**: Auto-detect system information using DMI data
 - **File Operations**: Backup creation, directory management, path resolution
 - **FileSystem Operations**: Comprehensive file‑system operations including file manipulation, permissions, symlinks, and path analysis
+- **Network Operations**: Network utilities including ping, hostname resolution, port checking, file downloads, and URL validation
 - **Process Execution**: Background process management, command execution with capture, timeout handling, and process monitoring
 - **String Manipulation**: Comprehensive string processing utilities including case conversion, trimming, and validation
 - **User Interaction**: Interactive prompts, confirmations, password input, and menu selections
@@ -352,6 +355,60 @@ if exec_run_with_timeout 5 curl "https://example.com"; then
 else
     echo "Command timed out or failed"
 fi
+```
+
+## Network Operations (network.sh)
+
+The `network.sh` module provides utilities for network operations including connectivity testing, hostname resolution, port checking, file downloads, and URL validation.
+
+### Core Functions
+
+| Function | Description |
+|----------|-------------|
+| `ping_host(host, [count])` | Ping a remote host using system ping binary |
+| `resolve_ip(hostname)` | Resolve a hostname to an IP address |
+| `is_port_open(host, port)` | Test whether a TCP port is open using netcat |
+| `download_file(url, dest)` | Download a remote file to local destination |
+| `check_url(url)` | Perform HEAD request to verify URL is reachable |
+| `get_public_ip()` | Retrieve the public IP address of current machine |
+
+### Configuration
+
+| Variable | Description | Default |
+|----------|-------------|----------|
+| `BASH_UTILS_NETWORK_TIMEOUT` | Timeout for network operations (seconds) | `5` |
+
+### Example Usage
+```bash
+source "./modules/network.sh"
+
+# Test connectivity
+if ping_host "google.com"; then
+    echo "Internet connection available"
+fi
+
+# Resolve hostname
+ip=$(resolve_ip "github.com")
+echo "GitHub IP: $ip"
+
+# Check if port is open
+if is_port_open "github.com" 443; then
+    echo "HTTPS port is open"
+fi
+
+# Download file
+if download_file "https://example.com/file.txt" "/tmp/download.txt"; then
+    echo "File downloaded successfully"
+fi
+
+# Verify URL is reachable
+if check_url "https://api.github.com"; then
+    echo "API endpoint is accessible"
+fi
+
+# Get public IP
+public_ip=$(get_public_ip)
+echo "Your public IP: $public_ip"
 ```
 
 ### Dependencies

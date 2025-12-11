@@ -57,6 +57,8 @@ BASH_UTILS_MODULES_DIR="${BASH_UTILS_DIR}/modules"
 # - prompts.sh: Interactive user input, confirmations, and menus
 # - exec.sh: Process execution, background job management, and timeout handling
 # - applications.sh: Application installation and management across Linux distributions
+# - env.sh: Environment variable management and validation
+#===============================================================================
 # shellcheck source=./modules/config.sh
 source "${BASH_UTILS_MODULES_DIR}/config.sh"
 # shellcheck source=./modules/logging.sh
@@ -81,6 +83,8 @@ source "${BASH_UTILS_MODULES_DIR}/exec.sh"
 source "${BASH_UTILS_MODULES_DIR}/applications.sh"
 # shellcheck source=./modules/network.sh
 source "${BASH_UTILS_MODULES_DIR}/network.sh"
+# shellcheck source=./modules/env.sh
+source "${BASH_UTILS_MODULES_DIR}/env.sh"
 
 #===============================================================================
 # LIBRARY INFORMATION

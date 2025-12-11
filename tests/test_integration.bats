@@ -44,6 +44,8 @@ teardown() {
     [ "$BASH_UTILS_PROMPTS_LOADED" = "true" ]
     [ "$BASH_UTILS_EXEC_LOADED" = "true" ]
     [ "$BASH_UTILS_NETWORK_LOADED" = "true" ]
+    [ "$BASH_UTILS_APPLICATIONS_LOADED" = "true" ]
+    [ "$BASH_UTILS_ENV_LOADED" = "true" ]
 }
 
 @test "bash_utils_info function is available" {

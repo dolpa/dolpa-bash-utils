@@ -36,6 +36,9 @@ teardown() {
 # Normal CLI parsing
 # ---------------------------------------------------------------------------
 @test "args_parse correctly extracts flags, values and positionals" {
+    # Register known flags and value options
+    args_set_flags --force
+    args_set_values --output
     # parse the arguments
     args_parse --force --output out.txt pos1 pos2
 

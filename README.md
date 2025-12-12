@@ -1,3 +1,42 @@
+### Argument Parsing (args.sh)
+
+The `args.sh` module provides robust command-line argument parsing for bash scripts, supporting flags, options with values, positional arguments, and grouped short flags.
+
+#### Features
+- Register known flags and value options
+- Parse long options (`--flag`, `--option=value`)
+- Parse short flag groups (`-abc`)
+- Retrieve flags, option values, and positionals
+- Fallback to environment variables
+- Usage string helper
+
+#### API Reference
+| Function | Description |
+|----------|-------------|
+| `args_set_flags <flag>...` | Register boolean flags (e.g. `--force`) |
+| `args_set_values <option>...` | Register options that expect a value (e.g. `--output <file>`) |
+| `args_set_usage <string>` | Set a usage/help string |
+| `args_usage` | Print the usage string |
+| `args_parse <argv...>` | Parse command-line arguments |
+| `args_get_flag <flag> [fallback]` | Check if a flag is set (returns 0 if set) |
+| `args_get_value <option> [default]` | Get the value for an option, or a default |
+| `args_get_positional <index>` | Get the N-th positional argument (0-based) |
+
+#### Example Usage
+```bash
+source modules/args.sh
+args_set_flags --force --dry-run
+args_set_values --output --input
+args_set_usage "--input <file> --output <file> [--force] [--dry-run]"
+args_parse "$@"
+
+if args_get_flag --force; then
+    echo "Force mode enabled"
+fi
+outfile=$(args_get_value --output "default.txt")
+first_arg=$(args_get_positional 0)
+args_usage
+```
 # Bash Utilities Library
 
 A comprehensive collection of utility functions for bash scripts, providing logging, validation, file operations, system detection, and more.
@@ -5,9 +44,15 @@ A comprehensive collection of utility functions for bash scripts, providing logg
 ## Files layout:
 ```
 bash-utils/
+├── Dockerfile
+├── LICENSE
+├── README.md
+├── bash-utils.sh
 ├── modules/
 │   ├── applications.sh
+│   ├── args.sh
 │   ├── config.sh
+│   ├── env.sh
 │   ├── exec.sh
 │   ├── files.sh
 │   ├── filesystem.sh
@@ -18,13 +63,18 @@ bash-utils/
 │   ├── system.sh
 │   ├── utils.sh
 │   └── validation.sh
+├── run-tests-docker.sh
+├── run-tests.sh
 ├── tests/
+│   ├── README.md
 │   ├── test_applications.bats
+│   ├── test_args.bats
 │   ├── test_config.bats
+│   ├── test_env.bats
 │   ├── test_exec.bats
 │   ├── test_files.bats
 │   ├── test_filesystem.bats
-│   ├── test_helper.bats
+│   ├── test_helper.sh
 │   ├── test_integration.bats
 │   ├── test_logging.bats
 │   ├── test_network.bats
@@ -33,11 +83,6 @@ bash-utils/
 │   ├── test_system.bats
 │   ├── test_utils.bats
 │   └── test_validation.bats
-├── bash-utils.sh
-├── Dockerfile
-├── LICENSE
-├── README.md
-└── run-tests.sh
 ```
 
 ## Features
@@ -219,6 +264,30 @@ The `filesystem.sh` module bundles a small set of safe, POSIX‑compatible helpe
 | `fs_perm_get <path>` | Prints the octal permission bits of `<path>`. |
 | `fs_perm_set <path> <mode>` | Sets the permission bits of `<path>` (e.g. `0644`). |
 
+## Application Management (applications.sh)
+
+*Documentation for applications.sh module. See above for details.*
+
+## Argument Parsing (args.sh)
+
+*Documentation for args.sh module. See above for details.*
+
+## Configuration (config.sh)
+
+*Documentation for config.sh module. Add details about configuration helpers, variables, and usage.*
+
+## Environment Helpers (env.sh)
+
+*Documentation for env.sh module. Add details about environment variable helpers and usage.*
+
+## Process Execution (exec.sh)
+
+*Documentation for exec.sh module. See above for details.*
+
+## File Operations (files.sh)
+
+*Documentation for files.sh module. Add details about file operation helpers and usage.*
+
 ## Filesystem Operations (filesystem.sh)
 
 The `filesystem.sh` module provides comprehensive file and directory management utilities with proper error handling and logging.
@@ -359,6 +428,10 @@ else
     echo "Command timed out or failed"
 fi
 ```
+
+## Logging (logging.sh)
+
+*Documentation for logging.sh module. Add details about logging functions, log levels, and usage.*
 
 ## Network Operations (network.sh)
 
@@ -581,9 +654,24 @@ COLOR_RESET, COLOR_NC (No Color)
 RED, GREEN, YELLOW, BLUE, NC
 ```
 
+## Prompts (prompts.sh)
+
+*Documentation for prompts.sh module. See below for details.*
+
 ## String Utilities (strings.sh)
 
 The `strings.sh` module provides comprehensive string manipulation and text processing utilities.
+## System Detection (system.sh)
+
+*Documentation for system.sh module. Add details about system detection helpers and usage.*
+
+## Utility Functions (utils.sh)
+
+*Documentation for utils.sh module. Add details about utility helpers and usage.*
+
+## Validation Functions (validation.sh)
+
+*Documentation for validation.sh module. See above for details.*
 
 ### Features
 - Case conversion (upper/lower/title)

@@ -20,6 +20,15 @@
 if [[ -n ${BASH_UTILS_ENV_LOADED:-} ]]; then
     return
 fi
+# Mark the module as loaded – readonly to prevent accidental changes
+readonly BASH_UTILS_ENV_LOADED="true"
+
+# ----------------------------------------------------------------------
+# Helper: trim leading and trailing whitespace (used internally)
+# ----------------------------------------------------------------------
+_env_ltrim()  { local s="${1#"${1%%[![:space:]]*}"}"; printf '%s' "$s"; }
+_env_rtrim()  { local s="${1%"${1##*[![:space:]]}"}"; printf '%s' "$s"; }
+_env_trim()   { _env_rtrim "$(_env_ltrim "$1")"; }
 
 #---------------------------------------------------------------------
 # env_require – abort script if a required variable is missing
@@ -69,16 +78,15 @@ env_default() {
 env_bool() {
     local var_name=$1
     local value="${!var_name:-}"
-    local lc_value="${value,,}"   # lower‑case
-
+    local lc_value=$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]')
     case "$lc_value" in
-        true|yes|1)
-            export "$var_name=true"
+        true|yes|1)  
+            printf 'true'
             ;;
         false|no|0)
-            export "$var_name=false"
+            printf 'false'
             ;;
-        *)
+        *)  
             log_error "Invalid boolean value for '$var_name': '$value'"
             return 1
             ;;
@@ -87,35 +95,50 @@ env_bool() {
 }
 
 #---------------------------------------------------------------------
-# env_from_file – safely source an env‑style file
+# env.sh – simple .env‑file loader
 #---------------------------------------------------------------------
-#   $1 – path to a file containing lines VAR=VALUE
-#   Empty lines and comments (starting with '#') are ignored.
-#   Only assignments that match a safe pattern are exported.
-#   Returns 0 on success, 1 on error (file missing or bad line).
+# The function reads a file that contains lines of the form
+#   VAR=value
+# Blank lines and lines that start with ‘#’ are ignored.
+# If a line does not contain exactly one ‘=’ the function aborts,
+# prints a helpful error message and returns 1.
+# The function returns 0 on success.
 #---------------------------------------------------------------------
-env_from_file() {
-    local env_file=$1
 
+env_from_file() {
+    local env_file="$1"
+
+    # -----------------------------------------------------------------
+    # 1️⃣  file must exist and be readable
+    # -----------------------------------------------------------------
     if [[ ! -f "$env_file" ]]; then
-        log_error "Environment file not found: $env_file"
+        echo "Environment file not found: $env_file" >&2
         return 1
     fi
 
+    # -----------------------------------------------------------------
+    # 2️⃣  read the file line‑by‑line
+    # -----------------------------------------------------------------
     while IFS= read -r line || [[ -n $line ]]; do
-        # Trim leading/trailing whitespace
+        # Strip leading and trailing whitespace (spaces or tabs)
         line="${line#"${line%%[![:space:]]*}"}"
         line="${line%"${line##*[![:space:]]}"}"
 
-        # Skip blanks and comments
+        # -----------------------------------------------------------------
+        # 3️⃣  ignore blanks and comments
+        # -----------------------------------------------------------------
         [[ -z $line || $line == \#* ]] && continue
 
-        # Accept only VAR=VALUE where VAR is a valid identifier
-        if [[ $line =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
-            # Export using builtin to avoid eval injection
-            export "$line"
+        # -----------------------------------------------------------------
+        # 4️⃣  verify the line has exactly one ‘=’
+        # -----------------------------------------------------------------
+        if [[ $line =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
+            local var_name="${BASH_REMATCH[1]}"
+            local var_value="${BASH_REMATCH[2]}"
+            # Export the variable so that the caller (the BATS test) can see it
+            export "$var_name=$var_value"
         else
-            log_error "Invalid line in env file '$env_file': $line"
+            echo "Invalid line in env file: $line" >&2
             return 1
         fi
     done < "$env_file"
@@ -123,5 +146,5 @@ env_from_file() {
     return 0
 }
 
-# Mark the module as loaded – readonly to prevent accidental changes
-readonly BASH_UTILS_ENV_LOADED="true"
+# Export all file operation functions for use in other scripts
+export -f env_require env_default env_bool env_from_file

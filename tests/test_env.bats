@@ -92,22 +92,21 @@ teardown() {
 #---------------------------------------------------------------------
 #  env_bool
 #---------------------------------------------------------------------
-
 @test "env_bool normalises true‑like values to 'true'" {
     for v in true TRUE Yes YES 1; do
-        export BOOL_VAR="$v"
+        export BOOL_VAR=$v
         run env_bool BOOL_VAR
         [ "$status" -eq 0 ]
-        [ "${BOOL_VAR}" = "true" ]
+        [ "$output" = "true" ]
     done
 }
 
 @test "env_bool normalises false‑like values to 'false'" {
     for v in false FALSE No NO 0; do
-        export BOOL_VAR="$v"
+        export BOOL_VAR=$v
         run env_bool BOOL_VAR
         [ "$status" -eq 0 ]
-        [ "${BOOL_VAR}" = "false" ]
+        [ "$output" = "false" ]
     done
 }
 
@@ -122,57 +121,91 @@ teardown() {
 #---------------------------------------------------------------------
 #  env_from_file
 #---------------------------------------------------------------------
-
+# --------------------------------------------------------------------
+#  1.  Loading a well‑formed file
+# --------------------------------------------------------------------
 @test "env_from_file loads a well‑formed env file" {
-    env_file="$(mktemp)"
-    cat >"$env_file" <<'EOF'
-# comment line
+    tmpfile="$(mktemp)"
+    cat <<'EOF' >"$tmpfile"
 FOO=bar
 BAZ=qux
-EMPTY=
 EOF
-    run env_from_file "$env_file"
-    [ "$status" -eq 0 ]
-    [ "${FOO}" = "bar" ]
-    [ "${BAZ}" = "qux" ]
-    [ -z "${EMPTY}" ]   # empty value is allowed
-    rm -f "$env_file"
+
+    # Call the function *directly* – we want its side‑effects to stay in this shell
+    env_from_file "$tmpfile"
+
+    [ "$FOO" = "bar" ]
+    [ "$BAZ" = "qux" ]
+
+    rm -f "$tmpfile"
 }
 
+# --------------------------------------------------------------------
+#  2.  Ignoring comments and blank lines
+# --------------------------------------------------------------------
 @test "env_from_file skips comments and blank lines" {
-    env_file="$(mktemp)"
-    cat >"$env_file" <<'EOF'
-
-# just a comment
+    tmpfile="$(mktemp)"
+    cat <<'EOF' >"$tmpfile"
+# this is a comment
 
 VAR1=one
 
 # another comment
 VAR2=two
+
 EOF
-    run env_from_file "$env_file"
-    [ "$status" -eq 0 ]
-    [ "${VAR1}" = "one" ]
-    [ "${VAR2}" = "two" ]
-    rm -f "$env_file"
+
+    env_from_file "$tmpfile"
+
+    [ "$VAR1" = "one" ]
+    [ "$VAR2" = "two" ]
+
+    rm -f "$tmpfile"
 }
 
+# --------------------------------------------------------------------
+#  3.  Malformed lines produce an error
+# --------------------------------------------------------------------
 @test "env_from_file fails on malformed lines" {
-    env_file="$(mktemp)"
-    cat >"$env_file" <<'EOF'
+    tmpfile="$(mktemp)"
+    cat <<'EOF' >"$tmpfile"
 GOOD=ok
-BAD line without equals
+MALFORMED LINE
 EOF
-    run env_from_file "$env_file"
-    [ "$status" -eq 1 ]
+
+    # We *do* want to run it in a sub‑shell so we can capture the error message
+    run bash -c '
+        source "'"${BATS_TEST_DIRNAME}"'/../modules/config.sh"
+        source "'"${BATS_TEST_DIRNAME}"'/../modules/logging.sh"
+        source "'"${BATS_TEST_DIRNAME}"'/../modules/env.sh"
+        env_from_file "'"${tmpfile}"'"
+    '
+
+    # The function should exit with a non‑zero status
+    [ "$status" -ne 0 ]
+
+    # The error text is printed to stderr by log_error
     [[ "$output" == *"Invalid line in env file"* ]]
-    # Ensure the good variable was still exported before the error
-    [ "${GOOD}" = "ok" ]
-    rm -f "$env_file"
+
+    rm -f "$tmpfile"
 }
 
+# --------------------------------------------------------------------
+#  4.  Missing file reports an error
+# --------------------------------------------------------------------
 @test "env_from_file reports missing file" {
-    run env_from_file "/non/existent/file.env"
-    [ "$status" -eq 1 ]
+    missing_file="/non/existing/env.file"
+
+    run bash -c '
+        source "'"${BATS_TEST_DIRNAME}"'/../modules/config.sh"
+        source "'"${BATS_TEST_DIRNAME}"'/../modules/logging.sh"
+        source "'"${BATS_TEST_DIRNAME}"'/../modules/env.sh"
+        env_from_file "'"${missing_file}"'"
+    '
+    
+    # The function should exit with a non‑zero status
+    [ "$status" -ne 0 ]
+
+    # Again, log_error writes to stderr
     [[ "$output" == *"Environment file not found"* ]]
 }

@@ -1,184 +1,199 @@
 #!/usr/bin/env bash
-#===============================================================================
-# args.sh – Light‑weight CLI argument & flag parser
-#
-# Provides:
-#   args_parse "$@"               – parse the command line
-#   args_get_flag --name          – true (0) if flag present, otherwise 1
-#   args_get_value --opt [def]    – echo the value or the default
-#   args_set_usage "text ..."      – set a usage string
-#   args_usage                    – print the usage string
-#
-# Flags/values can also be supplied via environment variables.  The env name is
-# derived from the long option name (e.g. --force → FORCE, --output-file → OUTPUT_FILE).
-#===============================================================================
+# =============================================================================
+# Argument handling utilities for bash‑utils
+# =============================================================================
+# The module follows the same pattern as the other modules:
+#   * it can be sourced many times without side‑effects
+#   * it sets a BASH_UTILS_ARGS_LOADED flag when first loaded
+# =============================================================================
 
-# ---------------------------------------------------------------------------
-# Guard against double‑sourcing
-# ---------------------------------------------------------------------------
-if [[ -n "${BASH_UTILS_ARGS_LOADED:-}" ]]; then
+# -------------------------------------------------------------------------
+# Guard against multiple sourcing
+# -------------------------------------------------------------------------
+if [[ -n ${BASH_UTILS_ARGS_LOADED-} ]]; then
     return
 fi
 readonly BASH_UTILS_ARGS_LOADED=true
 
-# ---------------------------------------------------------------------------
-# Load dependencies
-# ---------------------------------------------------------------------------
-source "${BASH_UTILS_ROOT:-$(dirname "${BASH_SOURCE[0]}")}/../modules/config.sh"
-source "${BASH_UTILS_ROOT:-$(dirname "${BASH_SOURCE[0]}")}/../modules/logging.sh"
-source "${BASH_UTILS_ROOT:-$(dirname "${BASH_SOURCE[0]}")}/../modules/env.sh"
+# -------------------------------------------------------------------------
+# Internal storage
+# -------------------------------------------------------------------------
+# associative arrays for flags and values
+declare -gA _args_flags      # e.g. _args_flags[force]=true
+declare -gA _args_values    # e.g. _args_values[output]=outfile.txt
+declare -ga _args_positionals   # positional arguments (no leading dashes)
 
-# ---------------------------------------------------------------------------
-# Global storage (associative arrays – Bash ≥4)
-# ---------------------------------------------------------------------------
-declare -gA ARGS_FLAGS   # flag → 1
-declare -gA ARGS_VALUES  # option → value
-declare -ga ARGS_POSITIONAL   # everything that is not an option
+# arrays that describe which options are *flags* (no value) and which expect a
+# value.  The public helpers `args_set_flags` and `args_set_values` fill them.
+declare -ga _args_known_flags
+declare -ga _args_known_values
 
-# ---------------------------------------------------------------------------
-# args_set_usage  "text ..."
-#   Store a usage string that can be printed later with args_usage.
-# ---------------------------------------------------------------------------
-args_set_usage() {
-    BASH_UTILS_ARGS_USAGE="${*}"
-}
+# usage string – set with `args_set_usage` and printed by `args_usage`
+declare -g _args_usage=""
 
-# ---------------------------------------------------------------------------
-# args_usage
-#   Print a tiny usage message (script name + stored usage string).
-# ---------------------------------------------------------------------------
-args_usage() {
-    local script
-    script="$(basename "${0}")"
-    log_header "Usage"
-    printf "  %s %s\n" "$script" "${BASH_UTILS_ARGS_USAGE:-[options] [arguments]}"
-    return 0
-}
+# -------------------------------------------------------------------------
+# Public helpers – declaration order is not important, they are all exported
+# -------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
-# args_parse "$@"
-#   Populate ARGS_FLAGS, ARGS_VALUES and ARGS_POSITIONAL.
-#   Supports:
-#       --flag
-#       --opt value   or   --opt=value
-#       -abc          (short‑flag grouping)
-# ---------------------------------------------------------------------------
-args_parse() {
-    # Reset previous data (so a script can call args_parse more than once)
-    ARGS_FLAGS=()
-    ARGS_VALUES=()
-    ARGS_POSITIONAL=()
-
-    while (( "$#" )); do
-        case "$1" in
-            --*=*)                                   # --opt=value
-                local key="${1%%=*}"
-                local val="${1#*=}"
-                ARGS_VALUES["$key"]="$val"
-                shift
-                ;;
-
-            --*)                                     # --flag   or   --opt value
-                local key="$1"
-                if [[ -n "$2" && "$2" != --* && "$2" != -* ]]; then
-                    ARGS_VALUES["$key"]="$2"
-                    shift 2
-                else
-                    ARGS_FLAGS["$key"]=1
-                    shift
-                fi
-                ;;
-
-            -?*)                                     # -a -b -c   or   -abc (grouped)
-                local chars="${1:1}"
-                local i
-                for (( i=0; i<${#chars}; i++ )); do
-                    ARGS_FLAGS["-${chars:i:1}"]=1
-                done
-                shift
-                ;;
-
-            *)                                       # Positional argument
-                ARGS_POSITIONAL+=("$1")
-                shift
-                ;;
-        esac
+# args_set_flags <flag> …
+#   Register a list of options that act as simple boolean flags.
+args_set_flags() {
+    _args_known_flags=()
+    for flag in "$@"; do
+        # Normalise: strip leading dashes, replace - with _
+        local name="${flag##--}"
+        name="${name//-/_}"
+        _args_known_flags+=("$name")
     done
 }
 
-# ---------------------------------------------------------------------------
-# args_get_flag  --name
-#   Returns 0 if the flag is present on the command line **or** if the
-#   corresponding environment variable is set (non‑empty).  Otherwise returns 1.
-# ---------------------------------------------------------------------------
-args_get_flag() {
-    local flag="$1"
+# args_set_values <option> …
+#   Register a list of options that expect a value (e.g. --output <file>).
+args_set_values() {
+    _args_known_values=()
+    for opt in "$@"; do
+        local name="${opt##--}"
+        name="${name//-/_}"
+        _args_known_values+=("$name")
+    done
+}
 
-    # 1️⃣  Direct flag on the command line
-    if [[ -n "${ARGS_FLAGS[$flag]}" ]]; then
+# args_set_usage <string>
+#   Store a usage/help string that can later be displayed with `args_usage`.
+args_set_usage() {
+    _args_usage=$1
+}
+
+# args_usage
+#   Echo the usage string that was stored with `args_set_usage`.
+args_usage() {
+    printf '%s\n' "$_args_usage"
+}
+
+# -------------------------------------------------------------------------
+# args_parse <argv…>
+#   Walk through the supplied arguments and fill the internal tables.
+# -------------------------------------------------------------------------
+args_parse() {
+    # Reset any previous state
+    _args_flags=()
+    _args_values=()
+    _args_positionals=()
+    local i=0
+    while (( i < $# )); do
+        local arg="${!i}"
+        # -------------------------------------------------------------
+        # 1. Long option with an attached value:  --opt=val
+        # -------------------------------------------------------------
+        if [[ $arg == --*=* ]]; then
+            local name="${arg%%=*}"
+            local value="${arg#*=}"
+            name="${name##--}"
+            name="${name//-/_}"
+            _args_values["$name"]="$value"
+            ((i++))
+            continue
+        fi
+
+        # -------------------------------------------------------------
+        # 2. Known flag (no value)  e.g.  --force
+        # -------------------------------------------------------------
+        if [[ $arg == --* ]]; then
+            local name="${arg##--}"
+            name="${name//-/_}"
+            # is it a registered flag?
+            if [[ " ${_args_known_flags[*]} " == *" $name "* ]]; then
+                _args_flags["$name"]=true
+                ((i++))
+                continue
+            fi
+
+            # is it a registered value‑option? then the next token is its value
+            if [[ " ${_args_known_values[*]} " == *" $name "* ]]; then
+                local next_index=$((i + 1))
+                if (( next_index < $# )); then
+                    local next="${!next_index}"
+                    _args_values["$name"]="$next"
+                    i=$((i + 2))
+                    continue
+                fi
+            fi
+        fi
+
+        # -------------------------------------------------------------
+        # 3. Anything else is a positional argument
+        # -------------------------------------------------------------
+        _args_positionals+=("$arg")
+        ((i++))
+    done
+    return 0
+}
+
+# -------------------------------------------------------------------------
+# Retrieval helpers
+# -------------------------------------------------------------------------
+
+# args_get_flag <flag> [fallback]
+#   Return 0/1 status indicating whether the flag is set.
+#   If the flag is not set, try the environment variable of the same name.
+#   The optional fallback value is returned as the function’s output.
+args_get_flag() {
+    local flag="${1##--}"
+    flag="${flag//-/_}"
+    local fallback="${2-}"
+
+    if [[ -n ${_args_flags[$flag]+_} ]]; then
+        printf '%s\n' "${fallback:-true}"
         return 0
     fi
 
-    # 2️⃣  Fallback to environment variable
-    #   --force  →  FORCE
-    #   --dry-run → DRY_RUN
-    local env_name
-    env_name="$(printf '%s' "$flag" |
-                sed -e 's/^--//' -e 's/^-\{1\}//' -e 's/-/_/g' |
-                tr '[:lower:]' '[:upper:]')"
-
-    if [[ -n "${!env_name}" ]]; then
+    # fall back to an environment variable with the same (upper‑cased) name
+    local env_name="${flag^^}"
+    if [[ -n ${!env_name-} ]]; then
+        printf '%s\n' "${!env_name}"
         return 0
     fi
 
     return 1
 }
 
-# ---------------------------------------------------------------------------
-# args_get_value  --opt [default]
-#   Echoes the value of an option.  The lookup order is:
-#       1️⃣  value supplied with args_parse
-#       2️⃣  environment variable (same conversion as above)
-#       3️⃣  optional default argument passed to the function
-#   Returns 0 on success, 1 if no value could be found.
-# ---------------------------------------------------------------------------
+# args_get_value <option> [default]
+#   Return the value for an option if it was supplied on the command line,
+#   otherwise return the caller‑supplied default (or the empty string).
 args_get_value() {
-    local key="$1"
+    local opt="${1##--}"
+    opt="${opt//-/_}"
     local default="${2-}"
 
-    if [[ -n "${ARGS_VALUES[$key]}" ]]; then
-        printf '%s' "${ARGS_VALUES[$key]}"
+    if [[ -n ${_args_values[$opt]+_} ]]; then
+        printf '%s\n' "${_args_values[$opt]}"
         return 0
     fi
 
-    # Environment fallback
-    local env_name
-    env_name="$(printf '%s' "$key" |
-                sed -e 's/^--//' -e 's/^-\{1\}//' -e 's/-/_/g' |
-                tr '[:lower:]' '[:upper:]')"
-
-    if [[ -n "${!env_name}" ]]; then
-        printf '%s' "${!env_name}"
+    # try an environment variable with the same name (upper‑cased)
+    local env_name="${opt^^}"
+    if [[ -n ${!env_name-} ]]; then
+        printf '%s\n' "${!env_name}"
         return 0
     fi
 
-    # Default supplied by the caller
-    if [[ -n "$default" ]]; then
-        printf '%s' "$default"
+    printf '%s\n' "$default"
+    return 0
+}
+
+# args_get_positional <index>
+#   Retrieve the N‑th positional argument (0‑based).  Returns 1 if out of range.
+args_get_positional() {
+    local idx=$1
+    if (( idx < ${#_args_positionals[@]} )); then
+        printf '%s\n' "${_args_positionals[$idx]}"
         return 0
     fi
-
     return 1
 }
 
-# ---------------------------------------------------------------------------
-# args_get_flag  --name
-#   Wrapper that returns 0/1 (no output) – useful inside conditionals.
-# ---------------------------------------------------------------------------
-args_get_flag() {
-    local flag="$1"
-    args_get_flag "$flag"
-}
-
-export -f args_parse args_get_flag args_get_value args_set_usage args_usage
-
+# -------------------------------------------------------------------------
+# End of module – export the public symbols
+# -------------------------------------------------------------------------
+export -f args_set_flags args_set_values args_set_usage args_usage \
+            args_parse args_get_flag args_get_value args_get_positional

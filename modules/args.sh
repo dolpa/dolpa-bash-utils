@@ -7,6 +7,11 @@
 #   * it sets a BASH_UTILS_ARGS_LOADED flag when first loaded
 # =============================================================================
 
+# Ensure internal arrays are declared with correct types
+declare -A _args_flags
+declare -A _args_values
+declare -a _args_positionals
+
 # -------------------------------------------------------------------------
 # Guard against multiple sourcing
 # -------------------------------------------------------------------------
@@ -19,17 +24,17 @@ readonly BASH_UTILS_ARGS_LOADED=true
 # Internal storage
 # -------------------------------------------------------------------------
 # associative arrays for flags and values
-declare -gA _args_flags      # e.g. _args_flags[force]=true
-declare -gA _args_values    # e.g. _args_values[output]=outfile.txt
-declare -ga _args_positionals   # positional arguments (no leading dashes)
-
-# arrays that describe which options are *flags* (no value) and which expect a
-# value.  The public helpers `args_set_flags` and `args_set_values` fill them.
-declare -ga _args_known_flags
-declare -ga _args_known_values
-
-# usage string – set with `args_set_usage` and printed by `args_usage`
-declare -g _args_usage=""
+# Ensure associative arrays for Bash 4+
+unset _args_flags _args_values _args_positionals
+if [[ "${BASH_VERSINFO:-0}" -ge 4 ]]; then
+    declare -gA _args_flags
+    declare -gA _args_values
+    declare -ga _args_positionals
+else
+    declare -ga _args_flags
+    declare -ga _args_values
+    declare -ga _args_positionals
+fi
 
 # -------------------------------------------------------------------------
 # Public helpers – declaration order is not important, they are all exported
@@ -67,7 +72,11 @@ args_set_usage() {
 # args_usage
 #   Echo the usage string that was stored with `args_set_usage`.
 args_usage() {
-    printf '%s\n' "$_args_usage"
+    if [[ -n $_args_usage ]]; then
+        printf 'Usage: %s\n' "$_args_usage"
+    else
+        printf 'No usage information set.\n'
+    fi
 }
 
 # -------------------------------------------------------------------------
@@ -79,8 +88,8 @@ args_parse() {
     _args_flags=()
     _args_values=()
     _args_positionals=()
-    local i=0
-    while (( i < $# )); do
+    local i=1
+    while (( i <= $# )); do
         local arg="${!i}"
         # -------------------------------------------------------------
         # 1. Long option with an attached value:  --opt=val
@@ -121,11 +130,36 @@ args_parse() {
         fi
 
         # -------------------------------------------------------------
+        # 2b. Short flag group: -abc
+        # -------------------------------------------------------------
+        if [[ $arg == -[a-zA-Z][a-zA-Z]* ]]; then
+            local chars="${arg:1}"
+            local c
+            for ((j=0; j<${#chars}; j++)); do
+                c="${chars:j:1}"
+                _args_flags["$c"]=true
+            done
+            ((i++))
+            continue
+        fi
+
+        # -------------------------------------------------------------
         # 3. Anything else is a positional argument
         # -------------------------------------------------------------
         _args_positionals+=("$arg")
         ((i++))
     done
+    # Export results as global arrays for test access
+    ARGS_FLAGS=()
+    for k in "${!_args_flags[@]}"; do
+        ARGS_FLAGS+=("$k")
+    done
+    ARGS_VALUES=()
+    for k in "${!_args_values[@]}"; do
+        ARGS_VALUES+=("$k=${_args_values[$k]}")
+    done
+    ARGS_POSITIONAL=("${_args_positionals[@]}")
+    export ARGS_FLAGS ARGS_VALUES ARGS_POSITIONAL
     return 0
 }
 

@@ -15,10 +15,10 @@ declare -a _args_positionals
 # -------------------------------------------------------------------------
 # Guard against multiple sourcing
 # -------------------------------------------------------------------------
-if [[ -n ${BASH_UTILS_ARGS_LOADED-} ]]; then
+if [[ "${BASH_UTILS_ARGS_LOADED:-}" == "true" ]]; then
     return
 fi
-readonly BASH_UTILS_ARGS_LOADED=true
+readonly BASH_UTILS_ARGS_LOADED="true"
 
 # -------------------------------------------------------------------------
 # Internal storage

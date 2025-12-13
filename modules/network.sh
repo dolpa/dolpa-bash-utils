@@ -27,7 +27,7 @@
 # Guard against multiple sourcing – this pattern is used in every
 # other module of the library.
 # ------------------------------------------------------------------
-if [[ -n "${BASH_UTILS_NETWORK_LOADED:-}" ]]; then
+if [[ "${BASH_UTILS_NETWORK_LOADED:-}" == "true" ]]; then
     # The module has already been sourced – exit silently.
     return 0
 fi

@@ -17,7 +17,7 @@
 #=====================================================================
 
 # Guard against multiple sourcing
-if [[ -n ${BASH_UTILS_ENV_LOADED:-} ]]; then
+if [[ "${BASH_UTILS_ENV_LOADED:-}" == "true" ]]; then
     return
 fi
 # Mark the module as loaded – readonly to prevent accidental changes

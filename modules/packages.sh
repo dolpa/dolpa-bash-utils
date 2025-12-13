@@ -22,7 +22,7 @@
 # ------------------------------------------------------------------
 # Guard – prevent the file from being sourced more than once.
 # ------------------------------------------------------------------
-if [[ -n "${BASH_UTILS_PACKAGES_LOADED:-}" ]]; then
+if [[ "${BASH_UTILS_PACKAGES_LOADED:-}" == "true" ]]; then
     return
 fi
 readonly BASH_UTILS_PACKAGES_LOADED="true"

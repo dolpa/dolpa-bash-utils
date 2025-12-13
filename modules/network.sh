@@ -27,20 +27,28 @@
 # Guard against multiple sourcing – this pattern is used in every
 # other module of the library.
 # ------------------------------------------------------------------
-if [[ -n "${BASH_UTILS_NETWORK_LOADED:-}" ]]; then
+if [[ "${BASH_UTILS_NETWORK_LOADED:-}" == "true" ]]; then
     # The module has already been sourced – exit silently.
     return 0
 fi
 readonly BASH_UTILS_NETWORK_LOADED=true
 
-# ------------------------------------------------------------------
-# Load required modules – config.sh must be first (defines colour
-# handling and timestamp format), logging.sh provides the logging
-# helpers, and validation.sh is used for argument validation.
-# ------------------------------------------------------------------
-source "${BASH_SOURCE[0]%/*}/config.sh"
-source "${BASH_SOURCE[0]%/*}/logging.sh"
-source "${BASH_SOURCE[0]%/*}/validation.sh"
+# ----------------------------------------------------------------------
+# Load required dependencies (config, logging and the generic file helpers)
+# ----------------------------------------------------------------------
+# The path of this script (e.g. /opt/bash-utils/modules/filesystem.sh)
+_BASH_UTILS_MODULE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# config must be loaded first – it defines colour handling, readonly flags,
+# etc.  All other modules already source it, but we keep the explicit load
+# here for clarity and in case this file is sourced directly.
+
+# shellcheck source=./modules/config.sh
+source "${_BASH_UTILS_MODULE_DIR}/../modules/config.sh"
+# shellcheck source=./modules/logging.sh
+source "${_BASH_UTILS_MODULE_DIR}/../modules/logging.sh"
+# shellcheck source=./modules/validation.sh
+source "${_BASH_UTILS_MODULE_DIR}/../modules/validation.sh"
 
 # ------------------------------------------------------------------
 # Public configuration variables (can be overridden by the caller)

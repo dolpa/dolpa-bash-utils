@@ -24,11 +24,11 @@
 # Guard against multiple sourcing – this pattern is used in every
 # other module of the library.
 # ------------------------------------------------------------------
-if [[ -n "${BASH_UTILS_APPLICATIONS_LOADED:-}" ]]; then
+if [[ "${BASH_UTILS_APPLICATIONS_LOADED:-}" == "true" ]]; then
     # The module has already been sourced – exit silently.
     return 0
 fi
-readonly BASH_UTILS_APPLICATIONS_LOADED=true
+readonly BASH_UTILS_APPLICATIONS_LOADED="true"
 
 # ------------------------------------------------------------------
 # Load required modules – config.sh must be first, then logging,

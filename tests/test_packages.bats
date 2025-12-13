@@ -55,6 +55,15 @@ setup() {
     # Keep the PATH deterministic: mocks first, then the toolchain.
     export PATH="${MOCK_BIN_DIR}:${TOOLS_BIN_DIR}"
 
+    # GitHub Actions runs tests as a non-root user. The packages module
+    # uses sudo when EUID != 0; provide a lightweight sudo shim that
+    # preserves PATH so our mocked package managers are still used.
+    cat >"${MOCK_BIN_DIR}/sudo" <<'EOF'
+#!/usr/bin/env bash
+exec "$@"
+EOF
+    chmod +x "${MOCK_BIN_DIR}/sudo"
+
     # Load the core modules in the required order.
     source "${BATS_TEST_DIRNAME}/../modules/config.sh"
     source "${BATS_TEST_DIRNAME}/../modules/logging.sh"

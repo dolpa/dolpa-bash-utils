@@ -59,6 +59,7 @@ bash-utils/
 │   ├── logging.sh
 │   ├── network.sh
 │   ├── prompts.sh
+│   ├── services.sh
 │   ├── strings.sh
 │   ├── system.sh
 │   ├── utils.sh
@@ -79,6 +80,7 @@ bash-utils/
 │   ├── test_logging.bats
 │   ├── test_network.bats
 │   ├── test_prompts.bats
+│   ├── test_services.bats
 │   ├── test_strings.bats
 │   ├── test_system.bats
 │   ├── test_utils.bats
@@ -653,82 +655,7 @@ COLOR_RESET, COLOR_NC (No Color)
 # Legacy aliases
 RED, GREEN, YELLOW, BLUE, NC
 ```
-
-## Prompts (prompts.sh)
-
-*Documentation for prompts.sh module. See below for details.*
-
-## String Utilities (strings.sh)
-
-The `strings.sh` module provides comprehensive string manipulation and text processing utilities.
-## System Detection (system.sh)
-
-*Documentation for system.sh module. Add details about system detection helpers and usage.*
-
-## Utility Functions (utils.sh)
-
-*Documentation for utils.sh module. Add details about utility helpers and usage.*
-
-## Validation Functions (validation.sh)
-
-*Documentation for validation.sh module. See above for details.*
-
-### Features
-- Case conversion (upper/lower/title)
-- Whitespace trimming (left, right, both)
-- String validation and testing (contains, starts/ends with, empty check)
-- String manipulation (replace, substring, reverse)
-- String formatting (padding, repeating)
-- Array operations (split, join)
-
-### API Reference
-
-| Function | Description |
-|----------|-------------|
-| `str_upper(string)` | Convert string to uppercase |
-| `str_lower(string)` | Convert string to lowercase |
-| `str_title(string)` | Convert string to title case |
-| `str_length(string)` | Get string length in characters |
-| `str_trim(string)` | Remove leading and trailing whitespace |
-| `str_ltrim(string)` | Remove leading whitespace only |
-| `str_rtrim(string)` | Remove trailing whitespace only |
-| `str_starts_with(string, prefix)` | Check if string starts with prefix |
-| `str_ends_with(string, suffix)` | Check if string ends with suffix |
-| `str_contains(string, substring)` | Check if string contains substring |
-| `str_replace(string, search, replace)` | Replace all occurrences |
-| `str_replace_first(string, search, replace)` | Replace first occurrence only |
-| `str_split(string, delimiter, array_name)` | Split string into array |
-| `str_join(delimiter, word1, word2, ...)` | Join words with delimiter |
-| `str_repeat(string, count)` | Repeat string n times |
-| `str_pad_left(string, length, [char])` | Pad string on the left |
-| `str_pad_right(string, length, [char])` | Pad string on the right |
-| `str_is_empty(string)` | Check if string is empty/whitespace |
-| `str_substring(string, start, [length])` | Extract substring |
-| `str_reverse(string)` | Reverse a string |
-
-### Example Usage
-```bash
-source "./modules/strings.sh"
-
-# Case conversion
-upper=$(str_upper "hello world")              # "HELLO WORLD"
-lower=$(str_lower "HELLO WORLD")              # "hello world"
-title=$(str_title "hello world")              # "Hello World"
-
-# String testing
-if str_contains "hello world" "world"; then
-    echo "Found 'world' in string"
-fi
-
-# String manipulation
-trimmed=$(str_trim "   hello   ")             # "hello"
-replaced=$(str_replace "foo bar foo" "foo" "baz")  # "baz bar baz"
-
-# Array operations
 declare -a words
-str_split "a,b,c" "," words
-joined=$(str_join "-" "${words[@]}")          # "a-b-c"
-```
 
 ## User Interaction (prompts.sh)
 
@@ -782,6 +709,98 @@ echo "Age: $age"
 # Pause
 prompt_pause "Press Enter to continue..."
 ```
+
+## Service Management (services.sh)
+
+The `services.sh` module provides a small, consistent API for interacting with services.
+On systemd-based Linux distributions it uses `systemctl`; when systemd is not available it falls back to the legacy `service` command if present.
+
+### API Reference
+
+| Function | Description |
+|----------|-------------|
+| `service_exists <name>` | Returns 0 if the unit/service exists, otherwise 1 |
+| `service_running <name>` | Returns 0 if the service is running/active, otherwise 1 |
+| `service_restart <name>` | Restarts the service; returns the underlying command status |
+| `service_enable <name>` | Enables the service at boot; returns the underlying command status |
+
+### Example Usage
+
+```bash
+source "./modules/services.sh"
+
+if service_exists docker; then
+    if service_running docker; then
+        echo "docker is running"
+    else
+        echo "docker is not running; restarting"
+        service_restart docker
+    fi
+
+    # Enable on boot (systemd; SysV requires chkconfig)
+    service_enable docker
+fi
+```
+
+## String Utilities (strings.sh)
+
+The `strings.sh` module provides comprehensive string manipulation and text processing utilities.
+
+### Features
+- Case conversion (upper/lower/title)
+- Whitespace trimming (left, right, both)
+- String validation and testing (contains, starts/ends with, empty check)
+- String manipulation (replace, substring, reverse)
+- String formatting (padding, repeating)
+- Array operations (split, join)
+
+### API Reference
+
+| Function | Description |
+|----------|-------------|
+| `str_upper(string)` | Convert string to uppercase |
+| `str_lower(string)` | Convert string to lowercase |
+| `str_title(string)` | Convert string to title case |
+| `str_length(string)` | Get string length in characters |
+| `str_trim(string)` | Remove leading and trailing whitespace |
+| `str_ltrim(string)` | Remove leading whitespace only |
+| `str_rtrim(string)` | Remove trailing whitespace only |
+| `str_starts_with(string, prefix)` | Check if string starts with prefix |
+| `str_ends_with(string, suffix)` | Check if string ends with suffix |
+| `str_contains(string, substring)` | Check if string contains substring |
+| `str_replace(string, search, replace)` | Replace all occurrences |
+| `str_replace_first(string, search, replace)` | Replace first occurrence only |
+| `str_split(string, delimiter, array_name)` | Split string into array |
+| `str_join(delimiter, word1, word2, ...)` | Join words with delimiter |
+| `str_repeat(string, count)` | Repeat string n times |
+| `str_pad_left(string, length, [char])` | Pad string on the left |
+| `str_pad_right(string, length, [char])` | Pad string on the right |
+| `str_is_empty(string)` | Check if string is empty/whitespace |
+| `str_substring(string, start, [length])` | Extract substring |
+| `str_reverse(string)` | Reverse a string |
+
+### Example Usage
+```bash
+source "./modules/strings.sh"
+
+# Case conversion
+upper=$(str_upper "hello world")              # "HELLO WORLD"
+lower=$(str_lower "HELLO WORLD")              # "hello world"
+title=$(str_title "hello world")              # "Hello World"
+
+# String testing
+if str_contains "hello world" "world"; then
+        echo "Found 'world' in string"
+fi
+
+# String manipulation
+trimmed=$(str_trim "   hello   ")             # "hello"
+replaced=$(str_replace "foo bar foo" "foo" "baz")  # "baz bar baz"
+
+# Array operations
+declare -a words
+str_split "a,b,c" "," words
+joined=$(str_join "-" "${words[@]}")          # "a-b-c"
 ```
 
 ## Examples

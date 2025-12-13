@@ -18,6 +18,11 @@ This directory contains comprehensive BATS (Bash Automated Testing System) tests
   - Verbose and debug mode behavior
   - Special formatting functions (header, section, step)
 
+- **`test_services.bats`** - Tests for the service management module (`services.sh`)
+  - Uses a mock `systemctl` placed first in `$PATH`
+  - Service existence and running-state checks
+  - Restart and enable command wrappers
+
 - **`test_validation.bats`** - Tests for the validation module (`validation.sh`)
   - Command existence checking
   - File and directory validation

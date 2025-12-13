@@ -18,6 +18,11 @@ This directory contains comprehensive BATS (Bash Automated Testing System) tests
   - Verbose and debug mode behavior
   - Special formatting functions (header, section, step)
 
+- **`test_packages.bats`** - Tests for the package management module (`packages.sh`)
+  - Detects the available package manager (via mocked binaries on `$PATH`)
+  - Verifies install/update commands are dispatched correctly
+  - Validates installed checks for apt and rpm-based managers
+
 - **`test_services.bats`** - Tests for the service management module (`services.sh`)
   - Uses a mock `systemctl` placed first in `$PATH`
   - Service existence and running-state checks

@@ -89,6 +89,8 @@ source "${BASH_UTILS_MODULES_DIR}/env.sh"
 source "${BASH_UTILS_MODULES_DIR}/args.sh"
 # shellcheck source=./modules/services.sh
 source "${BASH_UTILS_MODULES_DIR}/services.sh"
+# shellcheck source=./modules/packages.sh
+source "${BASH_UTILS_MODULES_DIR}/packages.sh"
 
 #===============================================================================
 # LIBRARY INFORMATION

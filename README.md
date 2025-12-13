@@ -58,6 +58,7 @@ bash-utils/
 │   ├── filesystem.sh
 │   ├── logging.sh
 │   ├── network.sh
+│   ├── packages.sh
 │   ├── prompts.sh
 │   ├── services.sh
 │   ├── strings.sh
@@ -79,6 +80,7 @@ bash-utils/
 │   ├── test_integration.bats
 │   ├── test_logging.bats
 │   ├── test_network.bats
+│   ├── test_packages.bats
 │   ├── test_prompts.bats
 │   ├── test_services.bats
 │   ├── test_strings.bats
@@ -95,6 +97,7 @@ bash-utils/
 - **File Operations**: Backup creation, directory management, path resolution
 - **FileSystem Operations**: Comprehensive file‑system operations including file manipulation, permissions, symlinks, and path analysis
 - **Network Operations**: Network utilities including ping, hostname resolution, port checking, file downloads, and URL validation
+- **Package Management**: A small abstraction over common Linux package managers (install/update/installed checks)
 - **Process Execution**: Background process management, command execution with capture, timeout handling, and process monitoring
 - **Application Management**: Install, remove, and manage applications across different Linux distributions (Docker support included)
 - **String Manipulation**: Comprehensive string processing utilities including case conversion, trimming, and validation
@@ -656,6 +659,32 @@ COLOR_RESET, COLOR_NC (No Color)
 RED, GREEN, YELLOW, BLUE, NC
 ```
 declare -a words
+
+## Package Management (packages.sh)
+
+The `packages.sh` module provides a small, consistent API for interacting with common Linux package managers. It detects the available manager and exposes helpers to update repositories, install packages, and check whether a package is installed.
+
+### API Reference
+
+| Function | Description |
+|----------|-------------|
+| `pkg_detect_manager` | Detects the package manager and sets `PKG_MANAGER` |
+| `pkg_update` | Updates package repositories/metadata |
+| `pkg_install <pkg>...` | Installs one or more packages |
+| `pkg_installed <pkg>` | Returns 0 if the package is installed, otherwise 1 |
+
+### Example Usage
+
+```bash
+source "./modules/packages.sh"
+
+pkg_update
+pkg_install curl git
+
+if pkg_installed git; then
+    echo "git is installed"
+fi
+```
 
 ## User Interaction (prompts.sh)
 

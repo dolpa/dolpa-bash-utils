@@ -18,6 +18,11 @@ This directory contains comprehensive BATS (Bash Automated Testing System) tests
   - Verbose and debug mode behavior
   - Special formatting functions (header, section, step)
 
+- **`test_crypto.bats`** - Tests for the crypto utilities module (`crypto.sh`)
+  - SHA-256 checksum generation and verification
+  - UUID v4 generation
+  - Random string generation
+
 - **`test_packages.bats`** - Tests for the package management module (`packages.sh`)
   - Detects the available package manager (via mocked binaries on `$PATH`)
   - Verifies install/update commands are dispatched correctly

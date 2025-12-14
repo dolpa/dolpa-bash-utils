@@ -91,6 +91,8 @@ source "${BASH_UTILS_MODULES_DIR}/args.sh"
 source "${BASH_UTILS_MODULES_DIR}/services.sh"
 # shellcheck source=./modules/packages.sh
 source "${BASH_UTILS_MODULES_DIR}/packages.sh"
+# shellcheck source=./modules/crypto.sh
+source "${BASH_UTILS_MODULES_DIR}/crypto.sh"
 
 #===============================================================================
 # LIBRARY INFORMATION
@@ -114,6 +116,11 @@ Loaded Modules:
   strings.sh     - String manipulation and text processing utilities
   prompts.sh     - User input and interaction functions
   exec.sh        - Process execution and background job management
+  env.sh         - Environment variable management and validation
+  args.sh        - Command-line argument parsing and handling
+  services.sh    - Service management across different init systems
+  packages.sh    - Package manager detection and application installation
+  crypto.sh      - Hashing, checksums, and key generation utilities
 
 Available Functions:
   Logging: log_info, log_success, log_warning, log_error, log_debug, log_critical
@@ -125,7 +132,13 @@ Available Functions:
   Version: is_semver, compare_versions
   Signal Handling: setup_signal_handlers
   String Operations: str_upper, str_lower, str_trim, str_contains, str_replace, str_split, str_join
-  User Prompts: prompt_input, prompt_password, prompt_confirm, prompt_menu, prompt_number
+  User Prompts: prompt_input, prompt_password, prompt_confirm, prompt_menu, prompt_number range
+  Process Execution: exec_cmd, exec_cmd_bg, exec_with_timeout
+  Environment: env_set, env_get, env_require, env_load_file
+  Services: service_start, service_stop, service_restart, service_status, service_enable, service_disable
+  Packages: pkg_detect_manager, pkg_install, pkg_remove, pkg_update, pkg_installed
+  Crypto: hash_sha256, hash_verify, uuid_generate, random_string
+
   
 Colors: COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE, COLOR_PURPLE, COLOR_CYAN, etc.
 Configuration: Set BASH_UTILS_VERBOSE=true for verbose output, BASH_UTILS_DEBUG=true for debug

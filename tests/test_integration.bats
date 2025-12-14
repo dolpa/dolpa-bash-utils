@@ -49,6 +49,7 @@ teardown() {
     [ "$BASH_UTILS_ARGS_LOADED" = "true" ]
     [ "$BASH_UTILS_SERVICES_LOADED" = "true" ]
     [ "$BASH_UTILS_PACKAGES_LOADED" = "true" ]
+    [ "$BASH_UTILS_CRYPTO_LOADED" = "true" ]
 }
 
 @test "bash_utils_info function is available" {

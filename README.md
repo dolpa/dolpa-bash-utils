@@ -52,6 +52,7 @@ bash-utils/
 │   ├── applications.sh
 │   ├── args.sh
 │   ├── config.sh
+│   ├── crypto.sh
 │   ├── env.sh
 │   ├── exec.sh
 │   ├── files.sh
@@ -72,6 +73,7 @@ bash-utils/
 │   ├── test_applications.bats
 │   ├── test_args.bats
 │   ├── test_config.bats
+│   ├── test_crypto.bats
 │   ├── test_env.bats
 │   ├── test_exec.bats
 │   ├── test_files.bats
@@ -98,6 +100,7 @@ bash-utils/
 - **FileSystem Operations**: Comprehensive file‑system operations including file manipulation, permissions, symlinks, and path analysis
 - **Network Operations**: Network utilities including ping, hostname resolution, port checking, file downloads, and URL validation
 - **Package Management**: A small abstraction over common Linux package managers (install/update/installed checks)
+- **Crypto Utilities**: SHA-256 hashing, checksum verification, UUID v4 generation, and random strings
 - **Process Execution**: Background process management, command execution with capture, timeout handling, and process monitoring
 - **Application Management**: Install, remove, and manage applications across different Linux distributions (Docker support included)
 - **String Manipulation**: Comprehensive string processing utilities including case conversion, trimming, and validation
@@ -684,6 +687,34 @@ pkg_install curl git
 if pkg_installed git; then
     echo "git is installed"
 fi
+```
+
+## Crypto Utilities (crypto.sh)
+
+The `crypto.sh` module provides small helpers for checksums and random identifiers. It is designed to work across different environments by using whichever tools are available on the host.
+
+### API Reference
+
+| Function | Description |
+|----------|-------------|
+| `hash_sha256 <file>` | Prints the SHA-256 checksum (hex) of a file |
+| `hash_verify <file> <checksum>` | Verifies a file against a checksum (case-insensitive) |
+| `uuid_generate` | Prints a RFC4122 UUID v4 |
+| `random_string [length]` | Prints a random alphanumeric string (default: 16) |
+
+### Example Usage
+
+```bash
+source "./modules/crypto.sh"
+
+sum=$(hash_sha256 "./artifact.tar.gz")
+echo "SHA-256: $sum"
+
+hash_verify "./artifact.tar.gz" "$sum"
+
+id=$(uuid_generate)
+token=$(random_string 32)
+echo "id=$id token=$token"
 ```
 
 ## User Interaction (prompts.sh)

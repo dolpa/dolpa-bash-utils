@@ -64,6 +64,7 @@ bash-utils/
 │   ├── services.sh
 │   ├── strings.sh
 │   ├── system.sh
+│   ├── time.sh
 │   ├── utils.sh
 │   └── validation.sh
 ├── run-tests-docker.sh
@@ -87,6 +88,7 @@ bash-utils/
 │   ├── test_services.bats
 │   ├── test_strings.bats
 │   ├── test_system.bats
+│   ├── test_time.bats
 │   ├── test_utils.bats
 │   └── test_validation.bats
 ```
@@ -101,6 +103,7 @@ bash-utils/
 - **Network Operations**: Network utilities including ping, hostname resolution, port checking, file downloads, and URL validation
 - **Package Management**: A small abstraction over common Linux package managers (install/update/installed checks)
 - **Crypto Utilities**: SHA-256 hashing, checksum verification, UUID v4 generation, and random strings
+- **Time Utilities**: Epoch/ISO-8601 helpers, formatting/parsing, and duration utilities
 - **Process Execution**: Background process management, command execution with capture, timeout handling, and process monitoring
 - **Application Management**: Install, remove, and manage applications across different Linux distributions (Docker support included)
 - **String Manipulation**: Comprehensive string processing utilities including case conversion, trimming, and validation
@@ -715,6 +718,49 @@ hash_verify "./artifact.tar.gz" "$sum"
 id=$(uuid_generate)
 token=$(random_string 32)
 echo "id=$id token=$token"
+```
+
+## Time Utilities (time.sh)
+
+The `time.sh` module provides the most common time operations needed in shell scripts: getting current timestamps, converting between epoch and ISO-8601, parsing timestamps, and working with durations.
+
+### API Reference
+
+| Function | Description |
+|----------|-------------|
+| `time_now` | Current ISO-8601 UTC timestamp (alias of `time_now_iso8601_utc`) |
+| `time_now_iso8601_utc` | Current ISO-8601 UTC timestamp (`YYYY-MM-DDTHH:MM:SSZ`) |
+| `time_now_iso8601_local` | Current local ISO-like timestamp (`YYYY-MM-DDTHH:MM:SS`) |
+| `time_epoch` | Current epoch seconds |
+| `time_epoch_ms` | Current epoch milliseconds (falls back to seconds*1000 when needed) |
+| `time_format_epoch <epoch> [format] [utc|local]` | Format an epoch using a `date` format string |
+| `time_epoch_to_iso8601 <epoch> [utc|local]` | Convert epoch to ISO-8601 (UTC adds `Z`) |
+| `time_parse_iso8601 <YYYY-MM-DDTHH:MM:SSZ>` | Parse ISO-8601 UTC timestamp into epoch seconds |
+| `time_add_seconds <epoch> <delta>` | Add seconds to an epoch value |
+| `time_diff_seconds <start> <end>` | Signed delta between epoch values (`end - start`) |
+| `time_seconds_to_human <seconds>` | Format duration as `XdYhZmWs` |
+| `time_benchmark <start> <end>` | Human-readable non-negative duration between two epochs |
+| `sleep_until <epoch>` | Sleep until an epoch time is reached (no-op if already past) |
+
+### Example Usage
+
+```bash
+source "./modules/time.sh"
+
+now_iso=$(time_now)
+now_epoch=$(time_epoch)
+
+echo "now_iso=$now_iso"
+echo "now_epoch=$now_epoch"
+
+# Convert epoch -> ISO-8601
+echo "epoch 0 => $(time_epoch_to_iso8601 0 utc)"
+
+# Parse ISO-8601 Z -> epoch
+echo "1970-01-01T00:00:00Z => $(time_parse_iso8601 "1970-01-01T00:00:00Z")"
+
+# Durations
+echo "3661s => $(time_seconds_to_human 3661)"
 ```
 
 ## User Interaction (prompts.sh)

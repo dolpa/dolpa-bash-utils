@@ -23,16 +23,26 @@
 # Guard – prevent the file from being sourced more than once.
 # ------------------------------------------------------------------
 if [[ "${BASH_UTILS_PACKAGES_LOADED:-}" == "true" ]]; then
-    return
+    return 0
 fi
 readonly BASH_UTILS_PACKAGES_LOADED="true"
 
-# ------------------------------------------------------------------
-# Load dependencies in the required order.
-# ------------------------------------------------------------------
-source "${BASH_SOURCE%/*}/config.sh"
-source "${BASH_SOURCE%/*}/logging.sh"
-source "${BASH_SOURCE%/*}/validation.sh"
+# ----------------------------------------------------------------------
+# Load required dependencies (config, logging and the generic file helpers)
+# ----------------------------------------------------------------------
+# The path of this script (e.g. /opt/bash-utils/modules/filesystem.sh)
+_BASH_UTILS_MODULE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# config must be loaded first – it defines colour handling, readonly flags,
+# etc.  All other modules already source it, but we keep the explicit load
+# here for clarity and in case this file is sourced directly.
+
+# shellcheck source=./modules/config.sh
+source "${_BASH_UTILS_MODULE_DIR}/../modules/config.sh"
+# shellcheck source=./modules/logging.sh
+source "${_BASH_UTILS_MODULE_DIR}/../modules/logging.sh"
+# shellcheck source=./modules/validation.sh
+source "${_BASH_UTILS_MODULE_DIR}/../modules/validation.sh"
 
 # ------------------------------------------------------------------
 # Global constants – supported package managers.

@@ -36,6 +36,7 @@ setup() {
     _link_tool env
     _link_tool date
     _link_tool grep
+    _link_tool dirname
     _link_tool cat
     _link_tool chmod
     _link_tool rm

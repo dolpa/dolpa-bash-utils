@@ -93,6 +93,8 @@ source "${BASH_UTILS_MODULES_DIR}/services.sh"
 source "${BASH_UTILS_MODULES_DIR}/packages.sh"
 # shellcheck source=./modules/crypto.sh
 source "${BASH_UTILS_MODULES_DIR}/crypto.sh"
+# shellcheck source=./modules/time.sh
+source "${BASH_UTILS_MODULES_DIR}/time.sh"
 
 #===============================================================================
 # LIBRARY INFORMATION
@@ -121,6 +123,7 @@ Loaded Modules:
   services.sh    - Service management across different init systems
   packages.sh    - Package manager detection and application installation
   crypto.sh      - Hashing, checksums, and key generation utilities
+  time.sh        - Time and date utilities
 
 Available Functions:
   Logging: log_info, log_success, log_warning, log_error, log_debug, log_critical
@@ -138,6 +141,7 @@ Available Functions:
   Services: service_start, service_stop, service_restart, service_status, service_enable, service_disable
   Packages: pkg_detect_manager, pkg_install, pkg_remove, pkg_update, pkg_installed
   Crypto: hash_sha256, hash_verify, uuid_generate, random_string
+  Time: time_now, time_epoch, time_epoch_ms, time_epoch_to_iso8601, time_parse_iso8601, time_benchmark, sleep_until
 
   
 Colors: COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE, COLOR_PURPLE, COLOR_CYAN, etc.

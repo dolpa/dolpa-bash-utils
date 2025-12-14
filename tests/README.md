@@ -23,6 +23,12 @@ This directory contains comprehensive BATS (Bash Automated Testing System) tests
   - UUID v4 generation
   - Random string generation
 
+- **`test_time.bats`** - Tests for the time utilities module (`time.sh`)
+  - ISO-8601 and epoch helpers
+  - Epoch formatting/parsing
+  - Duration/diff helpers
+  - Sleep-until behavior (no-op when already past)
+
 - **`test_packages.bats`** - Tests for the package management module (`packages.sh`)
   - Detects the available package manager (via mocked binaries on `$PATH`)
   - Verifies install/update commands are dispatched correctly

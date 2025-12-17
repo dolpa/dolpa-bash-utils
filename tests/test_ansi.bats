@@ -197,7 +197,7 @@ mock_ansi_supports_color_with_term_check() {
     run ansi_bright_green "great success"
     [ "$status" -eq 0 ]
     # Should contain ANSI escape sequences
-    [[ "$output" =~ $'\\033' ]]
+    [[ "$output" =~ $'\033' ]]
     # Should contain the text
     [[ "$output" =~ "great success" ]]
 }
@@ -235,7 +235,7 @@ mock_ansi_supports_color_with_term_check() {
     run ansi_bold "bold text"
     [ "$status" -eq 0 ]
     # Should contain ANSI escape sequences
-    [[ "$output" =~ $'\\033' ]]
+    [[ "$output" =~ $'\033' ]]
     # Should contain the text
     [[ "$output" =~ "bold text" ]]
 }
@@ -266,7 +266,7 @@ mock_ansi_supports_color_with_term_check() {
     run ansi_bg_yellow "WARNING"
     [ "$status" -eq 0 ]
     # Should contain ANSI escape sequences
-    [[ "$output" =~ $'\\033' ]]
+    [[ "$output" =~ $'\033' ]]
     # Should contain the text
     [[ "$output" =~ WARNING ]]
 }
@@ -325,7 +325,7 @@ mock_ansi_supports_color_with_term_check() {
     run ansi_error "Critical failure"
     [ "$status" -eq 0 ]
     # Should contain ANSI escape sequences
-    [[ "$output" =~ $'\\033' ]]
+    [[ "$output" =~ $'\033' ]]
     # Should contain the text
     [[ "$output" =~ "Critical failure" ]]
     # Should not contain fallback prefix
@@ -351,7 +351,7 @@ mock_ansi_supports_color_with_term_check() {
     run ansi_reset
     [ "$status" -eq 0 ]
     # Should contain ANSI escape sequence
-    [[ "$output" =~ $'\\033' ]]
+    [[ "$output" =~ $'\033' ]]
 }
 
 @test "ansi_strip removes ANSI sequences" {
@@ -493,10 +493,11 @@ line 3"
     export BASH_UTILS_FORCE_COLOR=true
     export TERM=xterm-256color
     
-    # Test that complex combinations don't break
-    run bash -c 'source "${BATS_TEST_DIRNAME}/../modules/config.sh"; source "${BATS_TEST_DIRNAME}/../modules/ansi.sh"; unset NO_COLOR; export BASH_UTILS_FORCE_COLOR=true; export TERM=xterm-256color; echo "$(ansi_bold "$(ansi_red "Bold Red")")"'
-    [ "$status" -eq 0 ]
-    # Should contain multiple ANSI sequences
+    # Test that complex combinations don't break (avoid brittle nested quoting).
+    local output
+    output="$(ansi_bold "$(ansi_red "Bold Red")")"
+
+    # Should contain at least two ESC bytes (nested formatting + reset).
     [[ "$output" =~ $'\033'.*$'\033' ]]
     # Should still contain the text
     [[ "$output" =~ "Bold Red" ]]

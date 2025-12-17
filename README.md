@@ -1,64 +1,112 @@
-# 🚀 Bash Utilities Library
+# Bash Utilities Library
 
-[![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](http://unlicense.org/)
-[![Bash](https://img.shields.io/badge/bash-v4.0%2B-green.svg)](https://www.gnu.org/software/bash/)
-[![Tests](https://img.shields.io/badge/tests-BATS-orange.svg)](https://github.com/bats-core/bats-core)
+![Badge Status](https://img.shields.io/badge/status-stable-brightgreen.svg)
+![Language](https://img.shields.io/badge/language-bash-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)
 
-A comprehensive, production-ready collection of utility functions for bash scripts. Provides robust logging, validation, file operations, system detection, application management, and much more with consistent APIs and comprehensive error handling.
+A comprehensive collection of utility functions for bash scripts, providing logging, validation, file operations, system detection, ANSI formatting, and more.
 
-## 📁 Project Structure
+## 📋 Table of Contents
+
+- [🏗️ Project Structure](#️-project-structure)
+- [✨ Key Features](#-key-features)
+- [⚡ Quick Start](#-quick-start)
+- [📦 Installation](#-installation)
+- [🔧 Usage](#-usage)
+- [📚 Module Reference](#-module-reference)
+- [🧪 Testing](#-testing)
+- [📖 Examples](#-examples)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+
+## 🏗️ Project Structure
 
 ```
 bash-utils/
-├── 📄 bash-utils.sh           # Main loader script
-├── 📄 LICENSE                 # Unlicense 
-├── 📄 README.md              # This documentation
-├── 🐳 Dockerfile             # Container for testing
-├── 🧪 run-tests.sh           # Test runner script
-├── 🧪 run-tests-docker.sh    # Docker test runner
-├── 📂 modules/               # Core utility modules
-│   ├── 🚀 applications.sh    # Application management (Docker, etc.)
-│   ├── 🎯 args.sh            # Command-line argument parsing
-│   ├── ⚙️ config.sh          # Configuration and color definitions
-│   ├── 🔐 crypto.sh          # Cryptographic utilities
-│   ├── 🌍 env.sh             # Environment variable helpers
-│   ├── 🔧 exec.sh            # Process execution and management
-│   ├── 📁 files.sh           # File backup and operations
-│   ├── 📂 filesystem.sh      # Filesystem operations and path handling
-│   ├── 📝 logging.sh         # Comprehensive logging system
-│   ├── 🌐 network.sh         # Network utilities and connectivity
-│   ├── 📦 packages.sh        # Package manager abstraction
-│   ├── 💬 prompts.sh         # Interactive user prompts
-│   ├── 🔧 services.sh        # System service management
-│   ├── 📝 strings.sh         # String manipulation utilities
-│   ├── 🖥️ system.sh          # System detection and information
-│   ├── ⏰ time.sh            # Date/time utilities
-│   ├── 🛠️ utils.sh           # General utility functions
-│   └── ✅ validation.sh      # Input validation functions
-└── 📂 tests/                 # Comprehensive test suite
-    ├── 📄 README.md          # Test documentation
-    ├── 🧪 test_helper.sh     # Test helper functions
-    └── 🧪 test_*.bats       # Individual module tests (BATS framework)
+├── 📄 README.md               # Project documentation
+├── 📄 LICENSE                 # MIT license
+├── 📄 Dockerfile              # Container build configuration
+├── 🚀 bash-utils.sh           # Main library loader
+├── 🚀 run-tests.sh            # Test runner
+├── 🚀 run-tests-docker.sh     # Docker test runner
+├── 📂 modules/                # Core utility modules
+│   ├── 🎨 ansi.sh             # ANSI colors and terminal formatting
+│   ├── 🚀 applications.sh     # Application management (Docker, etc.)
+│   ├── 🎯 args.sh             # Command-line argument parsing
+│   ├── ⚙️ config.sh           # Configuration management
+│   ├── 🔐 crypto.sh           # Cryptographic utilities
+│   ├── 🌍 env.sh              # Environment variable handling
+│   ├── ⚡ exec.sh             # Process execution and management
+│   ├── 📁 files.sh            # File manipulation utilities
+│   ├── 🗃️ filesystem.sh       # File system operations
+│   ├── 📝 logging.sh          # Comprehensive logging system
+│   ├── 🌐 network.sh          # Network operations
+│   ├── 📦 packages.sh         # Package management abstraction
+│   ├── 💬 prompts.sh          # Interactive user prompts
+│   ├── 🔧 services.sh         # System service management
+│   ├── 🔤 strings.sh          # String manipulation
+│   ├── 🖥️ system.sh           # System information and detection
+│   ├── ⏰ time.sh             # Time and date utilities
+│   ├── 🛠️ utils.sh            # General purpose utilities
+│   └── ✅ validation.sh       # Input validation functions
+└── 📂 tests/                  # Comprehensive test suite
+    ├── 📄 README.md           # Test documentation
+    ├── 🧪 test_helper.sh      # Test helper functions
+    ├── 🧪 test_ansi.bats      # ANSI formatting tests
+    └── 🧪 test_*.bats        # Individual module tests (BATS framework)
+>>>>>>> Stashed changes
 ```
 
 ## ✨ Key Features
 
 - 🎨 **Rich Logging** - Color-coded logging with timestamps and multiple log levels
-- ✅ **Input Validation** - Comprehensive validation for files, directories, emails, URLs, and more  
-- 🔍 **System Detection** - Auto-detect system information and hardware details
-- 📁 **File Operations** - Safe file manipulation, backup creation, and directory management
-- 🌐 **Network Utilities** - Network connectivity testing, file downloads, and URL validation
-- 📦 **Package Management** - Cross-distribution package management abstraction
-- 🔐 **Crypto Utilities** - SHA-256 hashing, checksum verification, and UUID generation
-- ⏰ **Time Utilities** - Date/time formatting, parsing, and duration helpers
-- 🔧 **Process Management** - Background process handling with timeouts and monitoring
-- 🚀 **Application Management** - Install/remove applications across Linux distributions
-- 📝 **String Processing** - Comprehensive text manipulation and formatting utilities
-- 💬 **User Interaction** - Interactive prompts, confirmations, and menu systems
-- 🛠️ **Development Tools** - Retry logic, signal handling, and debugging utilities
-- 🎯 **Argument Parsing** - Robust command-line argument parsing with flags and options
+- 🌈 **ANSI Formatting** - Comprehensive terminal colors and text formatting utilities
+- ✅ **Input Validation** - Comprehensive validation for files, directories, emails, URLs, and more
+- 🖥️ **System Detection** - Auto-detect system information using DMI data
+- 📁 **File Operations** - Backup creation, directory management, path resolution
+- 🗃️ **FileSystem Operations** - Comprehensive file system operations including file manipulation, permissions, symlinks, and path analysis
+- 🌐 **Network Operations** - Network utilities including ping, hostname resolution, port checking, file downloads, and URL validation
+- 📦 **Package Management** - A small abstraction over common Linux package managers (install/update/installed checks)
+- 🔐 **Crypto Utilities** - SHA-256 hashing, checksum verification, UUID v4 generation, and random strings
+- ⏰ **Time Utilities** - Epoch/ISO-8601 helpers, formatting/parsing, and duration utilities
+- ⚡ **Process Execution** - Background process management, command execution with capture, timeout handling, and process monitoring
+- 🚀 **Application Management** - Install, remove, and manage applications across different Linux distributions (Docker support included)
+- 🔤 **String Manipulation** - Comprehensive string processing utilities including case conversion, trimming, and validation
+- 💬 **User Interaction** - Interactive prompts, confirmations, password input, and menu selections
+- 🛠️ **Utility Functions** - Retry logic, human-readable formatting, random string generation
+- ⚠️ **Signal Handling** - Graceful script termination and cleanup
+- 🎯 **Argument Parsing** - Robust command-line argument parsing
+
+## ⚡ Quick Start
+
+```bash
+#!/bin/bash
+
+# Source the utility library
+source "lib/bash-utils.sh"
+
+# Use logging functions
+log_info "Starting application..."
+log_success "Operation completed successfully!"
+
+# Use ANSI formatting
+echo "$(ansi_bold)Bold text$(ansi_reset) and $(ansi_red)red text$(ansi_reset)"
+
+# Validate inputs
+if ! validate_email "user@example.com"; then
+    log_error "Invalid email address"
+    exit 1
+fi
+
+# System detection
+log_info "Running on: $(system_get_distro)"
+```
 
 ## 📦 Installation
+
+### As a Git Submodule (Recommended)
+>>>>>>> Stashed changes
 
 ### Method 1: Git Submodule (Recommended)
 ```bash
@@ -87,6 +135,7 @@ make install-deps:
 
 ## 🚀 Quick Start
 
+
 ### Basic Usage
 ```bash
 #!/bin/bash
@@ -97,10 +146,96 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/bash-utils/bash-utils.sh"
 # Enable verbose logging
 export BASH_UTILS_VERBOSE=true
 
+
 # Use logging functions
 log_info "🚀 Starting application"
 log_success "✅ Operation completed successfully"
 log_warning "⚠️ This is a warning"
+
+# Use any available functions
+log_info "Application started"
+validate_file "/etc/passwd"
+```
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `BASH_UTILS_VERBOSE` | Enable verbose logging | `false` |
+| `BASH_UTILS_LOG_LEVEL` | Set minimum log level | `info` |
+| `BASH_UTILS_COLOR` | Enable/disable colors | `auto` |
+| `BASH_UTILS_LOG_FILE` | Log to file | `""` |
+
+## 📚 Module Reference
+
+### 🎨 ANSI Formatting (ansi.sh)
+
+Comprehensive ANSI color and formatting utilities for terminal output.
+
+#### Text Colors
+| Function | Description |
+|----------|-------------|
+| `ansi_red <text>` | Print text in red |
+| `ansi_green <text>` | Print text in green |
+| `ansi_blue <text>` | Print text in blue |
+| `ansi_yellow <text>` | Print text in yellow |
+| `ansi_magenta <text>` | Print text in magenta |
+| `ansi_cyan <text>` | Print text in cyan |
+| `ansi_white <text>` | Print text in white |
+| `ansi_black <text>` | Print text in black |
+
+#### Text Styles
+| Function | Description |
+|----------|-------------|
+| `ansi_bold <text>` | Print bold text |
+| `ansi_italic <text>` | Print italic text |
+| `ansi_underline <text>` | Print underlined text |
+| `ansi_strikethrough <text>` | Print strikethrough text |
+
+#### Background Colors
+| Function | Description |
+|----------|-------------|
+| `ansi_bg_red <text>` | Print text with red background |
+| `ansi_bg_green <text>` | Print text with green background |
+| `ansi_bg_blue <text>` | Print text with blue background |
+
+#### Composite Functions
+| Function | Description |
+|----------|-------------|
+| `ansi_success <text>` | Green text with checkmark |
+| `ansi_error <text>` | Red text with X mark |
+| `ansi_warning <text>` | Yellow text with warning icon |
+| `ansi_info <text>` | Blue text with info icon |
+
+#### Utilities
+| Function | Description |
+|----------|-------------|
+| `ansi_strip <text>` | Remove ANSI codes from text |
+| `ansi_length <text>` | Get visible text length (excluding ANSI codes) |
+| `ansi_reset` | Reset all formatting |
+| `ansi_clear_line` | Clear current line |
+| `ansi_clear_screen` | Clear entire screen |
+
+#### Example Usage
+```bash
+source modules/ansi.sh
+
+echo "$(ansi_bold)$(ansi_red)Bold Red Text$(ansi_reset)"
+echo "$(ansi_success "Operation completed")"
+echo "$(ansi_warning "This is a warning")"
+
+# Background colors
+echo "$(ansi_bg_blue)$(ansi_white)White text on blue background$(ansi_reset)"
+
+# Strip ANSI codes for logging to files
+clean_text=$(ansi_strip "$(ansi_red)Colored text$(ansi_reset)")
+echo "$clean_text" >> logfile.txt
+```
+log_info "Starting application"
+log_success "Operation completed successfully"
+log_warning "This is a warning"
+log_error "An error occurred"
+>>>>>>> Stashed changes
 
 # Validate inputs before processing
 if ! validate_file "/etc/passwd" "System password file"; then

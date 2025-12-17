@@ -9,6 +9,7 @@
 # License: Unlicense
 # 
 # Modules included:
+# - ansi.sh: ANSI colors and terminal formatting utilities
 # - applications.sh: Application installation and management utilities
 # - config.sh: Color definitions and configuration
 # - logging.sh: Comprehensive logging with levels and colors
@@ -42,10 +43,11 @@ BASH_UTILS_MODULES_DIR="${BASH_UTILS_DIR}/modules"
 
 # Load all utility modules in proper dependency order
 # Each module checks for previous loading to prevent conflicts
-# Dependencies: config -> logging -> validation -> files/filesystem/network/system/utils -> strings/prompts -> exec -> applications
+# Dependencies: config -> ansi -> logging -> validation -> files/filesystem/network/system/utils -> strings/prompts -> exec -> applications
 # 
 # Module descriptions:
 # - config.sh: Core configuration and color definitions
+# - ansi.sh: ANSI colors and terminal formatting utilities
 # - logging.sh: Logging framework with multiple levels
 # - validation.sh: Input validation and type checking
 # - files.sh: File backup and management operations
@@ -61,6 +63,8 @@ BASH_UTILS_MODULES_DIR="${BASH_UTILS_DIR}/modules"
 #===============================================================================
 # shellcheck source=./modules/config.sh
 source "${BASH_UTILS_MODULES_DIR}/config.sh"
+# shellcheck source=./modules/ansi.sh
+source "${BASH_UTILS_MODULES_DIR}/ansi.sh"
 # shellcheck source=./modules/logging.sh
 source "${BASH_UTILS_MODULES_DIR}/logging.sh"
 # shellcheck source=./modules/validation.sh
@@ -106,6 +110,7 @@ bash_utils_info() {
 ${BASH_UTILS_NAME} v${BASH_UTILS_VERSION}
 
 Loaded Modules:
+  ansi.sh        - ANSI colors and terminal formatting utilities
   applications.sh - Application installation and management utilities
   config.sh      - Configuration constants and color definitions
   logging.sh     - Logging functions with different levels and formatting
@@ -127,6 +132,7 @@ Loaded Modules:
 
 Available Functions:
   Logging: log_info, log_success, log_warning, log_error, log_debug, log_critical
+  ANSI Formatting: ansi_red, ansi_green, ansi_yellow, ansi_blue, ansi_bold, ansi_underline, ansi_error, ansi_success, ansi_warning, ansi_info
   Validation: validate_file, validate_directory, validate_system_name, validate_email, validate_url
   System: get_os_name, get_os_version, auto_detect_system, command_exists, is_root, check_privileges
   File Operations: create_backup, ensure_directory, get_absolute_path, get_script_dir

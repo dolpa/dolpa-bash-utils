@@ -101,8 +101,8 @@ teardown() {
 @test "retry fails after the configured number of attempts" {
     # `false` always returns 1 → after 3 attempts the function should still
     # return non‑zero.
-    retry_cmd 3 false
-    [ "$?" -ne 0 ]
+    run retry_cmd 3 false
+    [ "$status" -ne 0 ]
 }
 
 # ----------------------------------------------------------------------
@@ -115,8 +115,8 @@ teardown() {
 
 @test "retry_with_backoff respects the maximum number of attempts" {
     # The command always fails; we ask for 2 attempts with a 0‑second start delay.
-    retry_with_backoff 2 0 false
-    [ "$?" -ne 0 ]
+    run retry_with_backoff 2 0 false
+    [ "$status" -ne 0 ]
 }
 
 # ----------------------------------------------------------------------
@@ -129,6 +129,6 @@ teardown() {
 
 @test "retry_until gives up after the timeout expires" {
     # `false` never succeeds; the wrapper should stop after 2 seconds.
-    retry_until 2 false
-    [ "$?" -ne 0 ]
+    run retry_until 2 false
+    [ "$status" -ne 0 ]
 }

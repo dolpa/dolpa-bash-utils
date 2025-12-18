@@ -30,22 +30,32 @@ exit 0
 EOF
     chmod +x "${MOCK_BIN_DIR}/sleep"
 
-    # Mock date +%s: return an incrementing counter so retry_until exits quickly.
+    # Mock date: support both the logging module (date +<format>) and
+    # retry_until (date +%s). For +%s we return an incrementing counter so
+    # retry_until exits quickly.
     export DATE_COUNTER_FILE="${BATS_TEST_TMPDIR}/date_counter"
     echo 0 >"${DATE_COUNTER_FILE}"
     cat >"${MOCK_BIN_DIR}/date" <<'EOF'
 #!/usr/bin/env bash
-set -euo pipefail
 
-if [[ "${1:-}" != "+%s" ]]; then
-  echo "mock date only supports: date +%s" >&2
-  exit 2
+epoch_mode="false"
+for arg in "$@"; do
+    if [[ "$arg" == "+%s" ]]; then
+        epoch_mode="true"
+        break
+    fi
+done
+
+if [[ "$epoch_mode" == "true" ]]; then
+    counter_file="${DATE_COUNTER_FILE:?}"
+    current="$(cat "$counter_file")"
+    echo "$current"
+    echo "$(( current + 1 ))" >"$counter_file"
+    exit 0
 fi
 
-counter_file="${DATE_COUNTER_FILE:?}"
-current="$(cat "$counter_file")"
-echo "$current"
-echo "$(( current + 1 ))" >"$counter_file"
+# For all other formats, return a stable placeholder timestamp.
+echo "1970-01-01 00:00:00"
 EOF
     chmod +x "${MOCK_BIN_DIR}/date"
 
@@ -84,41 +94,41 @@ teardown() {
 # retry – fixed number of attempts
 # ----------------------------------------------------------------------
 @test "retry succeeds when the command succeeds on the first try" {
-    run retry_cmd 3 true
-    [ "$status" -eq 0 ]
+    retry_cmd 3 true
+    [ "$?" -eq 0 ]
 }
 
 @test "retry fails after the configured number of attempts" {
     # `false` always returns 1 → after 3 attempts the function should still
     # return non‑zero.
-    run retry_cmd 3 false
-    [ "$status" -ne 0 ]
+    retry_cmd 3 false
+    [ "$?" -ne 0 ]
 }
 
 # ----------------------------------------------------------------------
 # retry_with_backoff – exponential back‑off
 # ----------------------------------------------------------------------
 @test "retry_with_backoff succeeds immediately when the command works" {
-    run retry_with_backoff 5 0 true
-    [ "$status" -eq 0 ]
+    retry_with_backoff 5 0 true
+    [ "$?" -eq 0 ]
 }
 
 @test "retry_with_backoff respects the maximum number of attempts" {
     # The command always fails; we ask for 2 attempts with a 0‑second start delay.
-    run retry_with_backoff 2 0 false
-    [ "$status" -ne 0 ]
+    retry_with_backoff 2 0 false
+    [ "$?" -ne 0 ]
 }
 
 # ----------------------------------------------------------------------
 # retry_until – timeout based retry
 # ----------------------------------------------------------------------
 @test "retry_until returns success if the command succeeds before timeout" {
-    run retry_until 3 true
-    [ "$status" -eq 0 ]
+    retry_until 3 true
+    [ "$?" -eq 0 ]
 }
 
 @test "retry_until gives up after the timeout expires" {
     # `false` never succeeds; the wrapper should stop after 2 seconds.
-    run retry_until 2 false
-    [ "$status" -ne 0 ]
+    retry_until 2 false
+    [ "$?" -ne 0 ]
 }

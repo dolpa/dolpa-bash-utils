@@ -45,6 +45,7 @@ bash-utils/
 │   ├── 📦 packages.sh         # Package management abstraction
 │   ├── 💬 prompts.sh          # Interactive user prompts
 │   ├── 🔁 retry.sh            # Retry helpers and backoff logic
+│   ├── 🪤 trap.sh             # Signal handling & cleanup helpers
 │   ├── 🔧 services.sh         # System service management
 │   ├── 🔤 strings.sh          # String manipulation
 │   ├── 🖥️ system.sh           # System information and detection
@@ -465,6 +466,9 @@ source bash-utils.sh
 | `bytes_to_human(bytes)` | Format file size | `size=$(bytes_to_human 1536000)` |
 | `generate_random_string([length], [chars])` | Generate random string | `token=$(generate_random_string 32)` |
 | `setup_signal_handlers([cleanup_func])` | Set up signal handlers | `setup_signal_handlers cleanup` |
+| `trap_on_exit(cleanup_func)` | Run cleanup on EXIT | `trap_on_exit cleanup` |
+| `trap_signals(signal...)` | Exit gracefully on signals | `trap_signals TERM INT HUP` |
+| `with_tempdir(cmd...)` | Run command inside a temp directory | `with_tempdir bash -c "pwd"` |
 | `is_semver(version)` | Check semantic version format | `is_semver "$version" && echo "Valid"` |
 | `compare_versions(v1, v2)` | Compare semantic versions | `compare_versions "1.2.0" "1.1.0"` |
 

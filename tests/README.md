@@ -34,6 +34,11 @@ This directory contains comprehensive BATS (Bash Automated Testing System) tests
   - Exponential backoff (`retry_with_backoff`)
   - Timeout-based retries (`retry_until`)
 
+- **`test_trap.bats`** - Tests for the signal handling / cleanup module (`trap.sh`)
+  - EXIT trap registration (`trap_on_exit`)
+  - Signal trap registration (`trap_signals`)
+  - Temporary directory helper (`with_tempdir`)
+
 - **`test_packages.bats`** - Tests for the package management module (`packages.sh`)
   - Detects the available package manager (via mocked binaries on `$PATH`)
   - Verifies install/update commands are dispatched correctly

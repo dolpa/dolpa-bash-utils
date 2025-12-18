@@ -29,6 +29,11 @@ This directory contains comprehensive BATS (Bash Automated Testing System) tests
   - Duration/diff helpers
   - Sleep-until behavior (no-op when already past)
 
+- **`test_retry.bats`** - Tests for the retry/backoff module (`retry.sh`)
+  - Fixed-attempt retries (`retry_cmd`)
+  - Exponential backoff (`retry_with_backoff`)
+  - Timeout-based retries (`retry_until`)
+
 - **`test_packages.bats`** - Tests for the package management module (`packages.sh`)
   - Detects the available package manager (via mocked binaries on `$PATH`)
   - Verifies install/update commands are dispatched correctly

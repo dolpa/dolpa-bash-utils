@@ -44,6 +44,7 @@ bash-utils/
 │   ├── 🌐 network.sh          # Network operations
 │   ├── 📦 packages.sh         # Package management abstraction
 │   ├── 💬 prompts.sh          # Interactive user prompts
+│   ├── 🔁 retry.sh            # Retry helpers and backoff logic
 │   ├── 🔧 services.sh         # System service management
 │   ├── 🔤 strings.sh          # String manipulation
 │   ├── 🖥️ system.sh           # System information and detection
@@ -55,7 +56,6 @@ bash-utils/
     ├── 🧪 test_helper.sh      # Test helper functions
     ├── 🧪 test_ansi.bats      # ANSI formatting tests
     └── 🧪 test_*.bats        # Individual module tests (BATS framework)
->>>>>>> Stashed changes
 ```
 
 ## ✨ Key Features
@@ -106,7 +106,7 @@ log_info "Running on: $(system_get_distro)"
 ## 📦 Installation
 
 ### As a Git Submodule (Recommended)
->>>>>>> Stashed changes
+
 
 ### Method 1: Git Submodule (Recommended)
 ```bash
@@ -235,7 +235,6 @@ log_info "Starting application"
 log_success "Operation completed successfully"
 log_warning "This is a warning"
 log_error "An error occurred"
->>>>>>> Stashed changes
 
 # Validate inputs before processing
 if ! validate_file "/etc/passwd" "System password file"; then
@@ -458,6 +457,9 @@ source bash-utils.sh
 | Function | Description | Example |
 |----------|-------------|---------|
 | `retry(attempts, delay, max_delay, cmd...)` | Retry with exponential backoff | `retry 3 2 30 curl "$url"` |
+| `retry_cmd(attempts, cmd...)` | Retry fixed number of attempts | `retry_cmd 3 curl "$url"` |
+| `retry_with_backoff(attempts, initial_delay, cmd...)` | Retry with exponential backoff | `retry_with_backoff 5 2 curl "$url"` |
+| `retry_until(timeout_seconds, cmd...)` | Retry until timeout reached | `retry_until 30 curl "$url"` |
 | `show_spinner(pid, [message])` | Show progress spinner | `show_spinner $! "Processing..."` |
 | `seconds_to_human(seconds)` | Format duration | `duration=$(seconds_to_human 3661)` |
 | `bytes_to_human(bytes)` | Format file size | `size=$(bytes_to_human 1536000)` |

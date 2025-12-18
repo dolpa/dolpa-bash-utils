@@ -99,6 +99,8 @@ source "${BASH_UTILS_MODULES_DIR}/packages.sh"
 source "${BASH_UTILS_MODULES_DIR}/crypto.sh"
 # shellcheck source=./modules/time.sh
 source "${BASH_UTILS_MODULES_DIR}/time.sh"
+# shellcheck source=./modules/retry.sh
+source "${BASH_UTILS_MODULES_DIR}/retry.sh"
 
 #===============================================================================
 # LIBRARY INFORMATION
@@ -129,6 +131,7 @@ Loaded Modules:
   packages.sh    - Package manager detection and application installation
   crypto.sh      - Hashing, checksums, and key generation utilities
   time.sh        - Time and date utilities
+  retry.sh       - Retry helpers and backoff logic
 
 Available Functions:
   Logging: log_info, log_success, log_warning, log_error, log_debug, log_critical
@@ -148,7 +151,7 @@ Available Functions:
   Packages: pkg_detect_manager, pkg_install, pkg_remove, pkg_update, pkg_installed
   Crypto: hash_sha256, hash_verify, uuid_generate, random_string
   Time: time_now, time_epoch, time_epoch_ms, time_epoch_to_iso8601, time_parse_iso8601, time_benchmark, sleep_until
-
+  Retry Logic: retry_cmd, retry_with_backoff, retry_until
   
 Colors: COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE, COLOR_PURPLE, COLOR_CYAN, etc.
 Configuration: Set BASH_UTILS_VERBOSE=true for verbose output, BASH_UTILS_DEBUG=true for debug

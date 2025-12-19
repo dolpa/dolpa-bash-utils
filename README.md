@@ -42,6 +42,7 @@ bash-utils/
 │   ├── 🗃️ filesystem.sh       # File system operations
 │   ├── 📝 logging.sh          # Comprehensive logging system
 │   ├── 🌐 network.sh          # Network operations
+│   ├── 🌐 http.sh             # HTTP client wrapper (curl / wget)
 │   ├── 📦 packages.sh         # Package management abstraction
 │   ├── 💬 prompts.sh          # Interactive user prompts
 │   ├── 🔁 retry.sh            # Retry helpers and backoff logic
@@ -68,6 +69,7 @@ bash-utils/
 - 📁 **File Operations** - Backup creation, directory management, path resolution
 - 🗃️ **FileSystem Operations** - Comprehensive file system operations including file manipulation, permissions, symlinks, and path analysis
 - 🌐 **Network Operations** - Network utilities including ping, hostname resolution, port checking, file downloads, and URL validation
+- 🌐 **HTTP Operations** - Lightweight HTTP GET/POST/status helpers and downloads (curl/wget wrapper)
 - 📦 **Package Management** - A small abstraction over common Linux package managers (install/update/installed checks)
 - 🔐 **Crypto Utilities** - SHA-256 hashing, checksum verification, UUID v4 generation, and random strings
 - ⏰ **Time Utilities** - Epoch/ISO-8601 helpers, formatting/parsing, and duration utilities
@@ -166,6 +168,7 @@ validate_file "/etc/passwd"
 | `BASH_UTILS_LOG_LEVEL` | Set minimum log level | `info` |
 | `BASH_UTILS_COLOR` | Enable/disable colors | `auto` |
 | `BASH_UTILS_LOG_FILE` | Log to file | `""` |
+| `BASH_UTILS_HTTP_TIMEOUT` | Timeout (seconds) for HTTP operations | `10` |
 
 ## 📚 Module Reference
 
@@ -396,6 +399,23 @@ source bash-utils.sh
 | `check_url(url)` | Verify URL is reachable | `check_url "$api_endpoint" && echo "API available"` |
 | `get_public_ip()` | Get public IP address | `public_ip=$(get_public_ip)` |
 
+### 🌐 HTTP Operations
+
+Lightweight HTTP client wrapper. Prefers `curl`, falls back to `wget`.
+
+| Function | Description | Example |
+|----------|-------------|---------|
+| `http_get(url)` | GET request; write response body to stdout | `html=$(http_get "https://example.com")` |
+| `http_post(url, data)` | POST data; write response body to stdout | `resp=$(http_post "$endpoint" '{"ok":true}')` |
+| `http_status(url)` | Print HTTP status code to stdout | `code=$(http_status "https://example.com")` |
+| `http_download(url, dest)` | Download URL to a local file path | `http_download "$url" "/tmp/file.bin"` |
+
+Environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `BASH_UTILS_HTTP_TIMEOUT` | Timeout (seconds) for HTTP operations | `10` |
+
 ### 🔧 Process Management
 
 | Function | Description | Example |
@@ -545,7 +565,7 @@ We welcome contributions! Please see our contribution guidelines:
 ### Optional Dependencies
 - **BATS** - For running tests
 - **Docker** - For containerized testing
-- **curl/wget** - For network operations
+- **curl/wget** - For network and HTTP operations
 - **jq** - For JSON processing (some modules)
 
 ## 📄 License

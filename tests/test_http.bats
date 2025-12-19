@@ -8,17 +8,112 @@
 # Global setup – run once before every test case
 # ------------------------------------------------------------------
 setup() {
-    # Load the library modules in the correct order.
-    source "${BATS_TEST_DIRNAME}/../modules/config.sh"
-    source "${BATS_TEST_DIRNAME}/../modules/logging.sh"
-    source "${BATS_TEST_DIRNAME}/../modules/validation.sh"
-    source "${BATS_TEST_DIRNAME}/../modules/http.sh"
-
     # Force deterministic output – no colour codes.
     export NO_COLOR=1
 
     # Use a short timeout so CI does not hang on unreachable hosts.
     export BASH_UTILS_HTTP_TIMEOUT=5
+
+        # ------------------------------------------------------------------
+        # CI-safe HTTP tests
+        #
+        # GitHub Actions environments can restrict outbound network access.
+        # To keep these tests deterministic, we mock the underlying HTTP
+        # client (curl) via PATH *before* sourcing http.sh.
+        # ------------------------------------------------------------------
+        export _BASH_UTILS_HTTP_MOCK_BIN="${BATS_TEST_TMPDIR}/mockbin"
+        mkdir -p "$_BASH_UTILS_HTTP_MOCK_BIN"
+
+        cat > "${_BASH_UTILS_HTTP_MOCK_BIN}/curl" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+url=""
+outfile=""
+writeout=""
+is_post=0
+data=""
+
+args=("$@")
+for ((i=0; i<${#args[@]}; i++)); do
+    case "${args[$i]}" in
+        -o)
+            outfile="${args[$((i+1))]:-}"
+            i=$((i+1))
+            ;;
+        -w)
+            writeout="${args[$((i+1))]:-}"
+            i=$((i+1))
+            ;;
+        -X)
+            if [[ "${args[$((i+1))]:-}" == "POST" ]]; then
+                is_post=1
+            fi
+            i=$((i+1))
+            ;;
+        -d|--data-raw|--data)
+            data="${args[$((i+1))]:-}"
+            i=$((i+1))
+            ;;
+        http://*|https://*)
+            url="${args[$i]}"
+            ;;
+    esac
+done
+
+body_example='<!doctype html><html><head><title>Example Domain</title></head><body>Example Domain</body></html>'
+
+if [[ -n "$writeout" ]]; then
+    if [[ "$url" == "https://example.com"* ]]; then
+        printf '200'
+        exit 0
+    fi
+    if [[ "$url" == "http://10.255.255.1"* ]]; then
+        # Mimic curl's connection failure behavior (non-zero) but still provide a code.
+        printf '000'
+        exit 7
+    fi
+    printf '000'
+    exit 0
+fi
+
+if [[ -n "$outfile" ]] && [[ "$outfile" != "/dev/null" ]]; then
+    if [[ "$url" == "https://example.com"* ]]; then
+        printf '%s' "$body_example" > "$outfile"
+        exit 0
+    fi
+    printf 'download' > "$outfile"
+    exit 0
+fi
+
+if (( is_post )); then
+    # Return a response containing the posted JSON in an easy-to-match way.
+    # Tests only assert that "msg" contains "bats test".
+    if [[ "$data" == *'"msg"'* ]]; then
+        printf '{"msg":"bats test"}'
+    else
+        printf '{"ok":true}'
+    fi
+    exit 0
+fi
+
+if [[ "$url" == "https://example.com"* ]]; then
+    printf '%s' "$body_example"
+    exit 0
+fi
+
+printf ''
+exit 0
+EOF
+        chmod +x "${_BASH_UTILS_HTTP_MOCK_BIN}/curl"
+
+        export PATH="${_BASH_UTILS_HTTP_MOCK_BIN}:$PATH"
+
+        # Load the library modules in the correct order.
+        source "${BATS_TEST_DIRNAME}/../modules/config.sh"
+        source "${BATS_TEST_DIRNAME}/../modules/logging.sh"
+        source "${BATS_TEST_DIRNAME}/../modules/validation.sh"
+        source "${BATS_TEST_DIRNAME}/../modules/http.sh"
 }
 
 # ------------------------------------------------------------------

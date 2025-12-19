@@ -53,6 +53,7 @@ teardown() {
     [ "$BASH_UTILS_TIME_LOADED" = "true" ]
     [ "$BASH_UTILS_TRAP_LOADED" = "true" ]
     [ "$BASH_UTILS_RETRY_LOADED" = "true" ]
+    [ "$BASH_UTILS_HTTP_LOADED" = "true" ]
 }
 
 @test "bash_utils_info function is available" {

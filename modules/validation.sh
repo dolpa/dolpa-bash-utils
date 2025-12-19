@@ -166,7 +166,11 @@ validate_email() {
 # Returns: 0 if URL format is valid, 1 otherwise
 validate_url() {
     local url="$1"
-    local pattern="^https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(/.*)?$"
+    # Accept:
+    #   - Domain names: https://example.com[/path]
+    #   - localhost: http://localhost[:port][/path]
+    #   - IPv4: http://10.0.0.1[:port][/path]
+    local pattern="^https?://((([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})|localhost|([0-9]{1,3}\.){3}[0-9]{1,3})(:[0-9]{1,5})?(/.*)?$"
     
     if [[ ! "$url" =~ $pattern ]]; then
         log_error "Invalid URL format: '$url'"

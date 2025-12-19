@@ -103,6 +103,8 @@ source "${BASH_UTILS_MODULES_DIR}/time.sh"
 source "${BASH_UTILS_MODULES_DIR}/retry.sh"
 # shellcheck source=./modules/trap.sh
 source "${BASH_UTILS_MODULES_DIR}/trap.sh"
+# shellcheck source=./modules/http.sh
+source "${BASH_UTILS_MODULES_DIR}/http.sh"
 
 #===============================================================================
 # LIBRARY INFORMATION
@@ -122,6 +124,7 @@ Loaded Modules:
   files.sh       - File and directory manipulation utilities
   filesystem.sh  - Comprehensive filesystem operations and path analysis
   network.sh     - Network utilities for connectivity and file transfers
+  http.sh        - Lightweight HTTP client wrapper (curl / wget)
   system.sh      - Operating system and hardware detection
   utils.sh       - General utilities, signal handling, version management
   strings.sh     - String manipulation and text processing utilities

@@ -213,12 +213,10 @@ run_specific_test() {
     for test_file in "${test_files[@]}"; do
         log_info "Running $(basename "$test_file")..."
 
-        local bats_args
-        bats_args=()
-        [[ "$VERBOSE" == "true" ]] && bats_args+=("--verbose")
-
-        if ! bats "${bats_args[@]}" "$test_file"; then
-            exit_code=1
+        if [[ "$VERBOSE" == "true" ]]; then
+            bats --verbose "$test_file" || exit_code=1
+        else
+            bats "$test_file" || exit_code=1
         fi
         echo
     done
@@ -244,23 +242,27 @@ run_all_tests() {
 
     log_info "Found ${#test_files[@]} test file(s)"
 
-    local bats_args
-    bats_args=()
-    [[ "$VERBOSE" == "true" ]] && bats_args+=("--verbose")
+    local bats_verbose=false
+    [[ "$VERBOSE" == "true" ]] && bats_verbose=true
     [[ "$COVERAGE" == "true" ]] && log_info "Coverage reporting requested (if supported by BATS version)"
 
     local exit_code=0
     if [[ "$VERBOSE" == "true" ]] || (( ${#test_files[@]} <= 3 )); then
         for test_file in "${test_files[@]}"; do
             log_info "Running $(basename "$test_file")..."
-            if ! bats "${bats_args[@]}" "$test_file"; then
-                exit_code=1
+
+            if [[ "$bats_verbose" == "true" ]]; then
+                bats --verbose "$test_file" || exit_code=1
+            else
+                bats "$test_file" || exit_code=1
             fi
             echo
         done
     else
-        if ! bats "${bats_args[@]}" "${test_files[@]}"; then
-            exit_code=1
+        if [[ "$bats_verbose" == "true" ]]; then
+            bats --verbose "${test_files[@]}" || exit_code=1
+        else
+            bats "${test_files[@]}" || exit_code=1
         fi
     fi
 

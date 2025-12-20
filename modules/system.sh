@@ -91,5 +91,134 @@ auto_detect_system() {
     fi
 }
 
+# -----------------------------
+# Sysctl profile detection
+# -----------------------------
+
+_sysctl_slugify() {
+    # Lowercase, whitespace to '-', strip unsupported characters
+    echo "$*" | tr '[:upper:]' '[:lower:]' | tr '[:space:]' '-' | sed 's/[^a-z0-9_-]//g'
+}
+
+_dmi_read() {
+    local path="$1"
+    [[ -f "$path" ]] || return 1
+    cat "$path" 2>/dev/null
+}
+
+get_system_fingerprint() {
+    # Best-effort, non-root fingerprint from sysfs DMI.
+    local vendor product board
+    vendor=$(_dmi_read /sys/class/dmi/id/sys_vendor || true)
+    product=$(_dmi_read /sys/class/dmi/id/product_name || true)
+    board=$(_dmi_read /sys/class/dmi/id/board_name || true)
+    vendor=$(_sysctl_slugify "$vendor")
+    product=$(_sysctl_slugify "$product")
+    board=$(_sysctl_slugify "$board")
+    echo "${vendor} ${product} ${board}" | tr ' ' '-'
+}
+
+list_sysctl_profiles() {
+    local config_dir="$1"
+    [[ -d "$config_dir" ]] || return 1
+
+    local systems=()
+    local file
+
+    # Performance files may have a historical typo: 'performanc'.
+    for file in "$config_dir"/99-*-performance.conf "$config_dir"/99-*-performanc.conf; do
+        [[ -f "$file" ]] || continue
+
+        local base
+        base=$(basename "$file")
+        local system_name
+        system_name=$(echo "$base" | sed -E 's/^99-(.*)-(performance|performanc)\.conf$/\1/')
+
+        local security_file="$config_dir/99-${system_name}-security.conf"
+        [[ -f "$security_file" ]] || continue
+        systems+=("$system_name")
+    done
+
+    # Deduplicate
+    if (( ${#systems[@]} > 0 )); then
+        printf '%s\n' "${systems[@]}" | awk '!seen[$0]++'
+    fi
+}
+
+auto_detect_sysctl_profile() {
+    # Usage: auto_detect_sysctl_profile <config_dir>
+    # Honors SYSCTL_SYSTEM_NAME (or DOLPA_SYSCTL_SYSTEM_NAME) override.
+    local config_dir="${1:-}"
+
+    if [[ -n "${SYSCTL_SYSTEM_NAME:-}" ]]; then
+        echo "${SYSCTL_SYSTEM_NAME}"
+        return 0
+    fi
+    if [[ -n "${DOLPA_SYSCTL_SYSTEM_NAME:-}" ]]; then
+        echo "${DOLPA_SYSCTL_SYSTEM_NAME}"
+        return 0
+    fi
+
+    local fingerprint
+    fingerprint=$(get_system_fingerprint | _sysctl_slugify)
+    log_debug "System fingerprint: $fingerprint"
+
+    local candidates=()
+    if [[ -n "$config_dir" && -d "$config_dir" ]]; then
+        while IFS= read -r line; do
+            [[ -n "$line" ]] && candidates+=("$line")
+        done < <(list_sysctl_profiles "$config_dir" || true)
+    fi
+
+    # If we can’t see candidates, fall back to the generic DMI detection.
+    if (( ${#candidates[@]} == 0 )); then
+        auto_detect_system
+        return $?
+    fi
+
+    # 1) Substring match (pick the longest matching candidate).
+    local best=""
+    local best_len=0
+    local c
+    for c in "${candidates[@]}"; do
+        if [[ "$fingerprint" == *"$c"* ]]; then
+            if (( ${#c} > best_len )); then
+                best="$c"
+                best_len=${#c}
+            fi
+        fi
+    done
+    if [[ -n "$best" ]]; then
+        log_debug "Matched sysctl profile by substring: $best"
+        echo "$best"
+        return 0
+    fi
+
+    # 2) Heuristic mappings for common machines / your AI server.
+    local fp="$fingerprint"
+    if [[ "$fp" == *"dell"* && "$fp" == *"xps"* ]]; then
+        if printf '%s\n' "${candidates[@]}" | grep -qx "dell-xps"; then
+            echo "dell-xps"
+            return 0
+        fi
+    fi
+    if [[ "$fp" == *"thinkpad"* && "$fp" == *"x1"* ]] || [[ "$fp" == *"lenovo"* && "$fp" == *"x1"* ]]; then
+        if printf '%s\n' "${candidates[@]}" | grep -qx "thinkpad-x1"; then
+            echo "thinkpad-x1"
+            return 0
+        fi
+    fi
+    if [[ "$fp" == *"x88"* ]]; then
+        if printf '%s\n' "${candidates[@]}" | grep -qx "ai-x88-srv"; then
+            echo "ai-x88-srv"
+            return 0
+        fi
+    fi
+
+    log_warning "Could not map this machine to an available sysctl profile"
+    log_info "Available profiles: $(printf '%s ' "${candidates[@]}")"
+    return 1
+}
+
 # Export system detection functions
-export -f get_os_name get_os_version auto_detect_system
+export -f get_os_name get_os_version auto_detect_system get_system_fingerprint list_sysctl_profiles auto_detect_sysctl_profile

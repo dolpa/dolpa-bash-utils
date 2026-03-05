@@ -50,6 +50,7 @@ bash-utils/
 │   ├── 🔧 services.sh         # System service management
 │   ├── 🔤 strings.sh          # String manipulation
 │   ├── 🖥️ system.sh           # System information and detection
+
 │   ├── ⏰ time.sh             # Time and date utilities
 │   ├── 🛠️ utils.sh            # General purpose utilities
 │   └── ✅ validation.sh       # Input validation functions
@@ -491,6 +492,10 @@ Environment variables:
 | `with_tempdir(cmd...)` | Run command inside a temp directory | `with_tempdir bash -c "pwd"` |
 | `is_semver(version)` | Check semantic version format | `is_semver "$version" && echo "Valid"` |
 | `compare_versions(v1, v2)` | Compare semantic versions | `compare_versions "1.2.0" "1.1.0"` |
+
+### System Mount
+| Function | Description | Example |
+|----------|-------------|---------|
 
 ## 🧪 Testing
 

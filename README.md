@@ -344,6 +344,7 @@ source bash-utils.sh
 | `log_warning(message...)` | Warning messages (yellow) | `log_warning "⚠️ Deprecated function"` |
 | `log_error(message...)` | Error messages (red, to stderr) | `log_error "❌ File not found"` |
 | `log_critical(message...)` | Critical errors (red background) | `log_critical "💥 System failure"` |
+| `log_to_file(level, file, message...)` | Print a log message and append a formatted entry to a log file | `log_to_file "info" "/tmp/app.log" "Started successfully"` |
 | `log_header(message...)` | Section headers with borders | `log_header "🚀 Starting Deployment"` |
 | `log_section(message...)` | Subsection headers | `log_section "📦 Installing packages"` |
 | `log_step(number, message)` | Numbered step indicators | `log_step 1 "Preparing environment"` |

@@ -118,6 +118,46 @@ log_fatal() {
     log_critical "$@"
 }
 
+# Logging into a file instead of stdout/stderr
+# Logs the message to the specified file in addition to standard output
+# Arguments:
+#   $1 - log level (e.g., INFO, ERROR, DEBUG)
+#   $2 - log file path
+#   $3 - message text to log
+log_to_file() {
+    local level="$1"
+    local log_file="$2"
+    local normalized_level
+    local message
+    local timestamp
+
+    shift 2
+    message="$*"
+    normalized_level="$(printf '%s' "$level" | tr '[:upper:]' '[:lower:]')"
+
+    case "$normalized_level" in
+        trace)    log_trace "$message" ;;
+        debug)    log_debug "$message" ;;
+        info)     log_info "$message" ;;
+        success)  log_success "$message" ;;
+        warning|warn)
+                  log_warning "$message" ;;
+        error)    log_error "$message" ;;
+        critical|fatal)
+                  log_critical "$message" ;;
+        *)        log_info "$message" ;;
+    esac
+
+    if [[ -n "$log_file" ]]; then
+        timestamp=$(_get_timestamp)
+        if [[ "${BASH_UTILS_TIMESTAMP:-true}" == "true" ]]; then
+            printf '[%s] %s - %s\n' "$(printf '%s' "$normalized_level" | tr '[:lower:]' '[:upper:]')" "$timestamp" "$message" >> "$log_file"
+        else
+            printf '[%s] %s\n' "$(printf '%s' "$normalized_level" | tr '[:lower:]' '[:upper:]')" "$message" >> "$log_file"
+        fi
+    fi
+}
+
 #===============================================================================
 # SPECIAL FORMATTING FUNCTIONS
 #===============================================================================
@@ -160,5 +200,5 @@ log_step() {
 }
 
 # Export all logging functions for use in other scripts
-export -f log_trace log_debug log_info log_success log_warning log_warn log_error log_critical log_fatal
+export -f log_trace log_debug log_info log_success log_warning log_warn log_error log_critical log_fatal log_to_file
 export -f log_header log_section log_step

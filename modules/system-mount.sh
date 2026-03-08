@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #===============================================================================
 # modules/system-mount.sh
 #   Library that implements safe mounting/unmounting under a configurable base

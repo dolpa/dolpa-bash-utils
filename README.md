@@ -50,7 +50,7 @@ bash-utils/
 │   ├── 🔧 services.sh         # System service management
 │   ├── 🔤 strings.sh          # String manipulation
 │   ├── 🖥️ system.sh           # System information and detection
-
+│   ├── 💾 system-mount.sh     # Safe mounting/unmounting utilities
 │   ├── ⏰ time.sh             # Time and date utilities
 │   ├── 🛠️ utils.sh            # General purpose utilities
 │   └── ✅ validation.sh       # Input validation functions
@@ -474,7 +474,55 @@ Environment variables:
 | `prompt_menu(title, option...)` | Show selection menu | `choice=$(prompt_menu "Select" "Option 1" "Option 2")` |
 | `prompt_number(prompt, [min], [max])` | Get numeric input | `num=$(prompt_number "Enter count" 1 100)` |
 
-### 🛠️ Utility Functions
+### � System Mount Functions
+
+Safe mounting and unmounting operations under a configurable base directory. Requires root privileges for most operations.
+
+| Function | Description | Example |
+|----------|-------------|---------|
+| `mount_set_base_dir(path)` | Set the base directory for mount operations | `mount_set_base_dir "/mnt"` |
+| `mount_get_base_dir()` | Get the current base directory | `base_dir=$(mount_get_base_dir)` |
+| `mount_set_verbose()` | Enable verbose output for mount operations | `mount_set_verbose` |
+| `mount_set_dry_run()` | Enable dry-run mode (show what would be done) | `mount_set_dry_run` |
+| `mount_cli_mount(fstype, device, point)` | Mount filesystem under base directory | `mount_cli_mount ext4 /dev/sdb1 backup --mkdir` |
+| `mount_cli_umount(point)` | Unmount filesystem from mount point | `mount_cli_umount backup` |
+| `mount_cli_status(point)` | Check mount status of a point | `mount_cli_status backup` |
+| `mount_cli_list()` | List all mounts under base directory | `mount_cli_list` |
+| `mount_is_mounted(target)` | Check if target path is mounted | `mount_is_mounted "/mnt/backup" && echo "Mounted"` |
+| `mount_target_path(point)` | Get absolute path for mount point | `target=$(mount_target_path "backup")` |
+
+#### Mount Options
+- `--mkdir` - Create target directory if it doesn't exist
+- `--opts <options>` - Specify mount options (e.g., "ro,noexec")
+- `--mode <mode>` - Use predefined mount mode (resolves to specific options)
+
+#### Usage Examples
+```bash
+source modules/system-mount.sh
+
+# Set base directory and enable verbose output
+mount_set_base_dir "/mnt"
+mount_set_verbose
+
+# Mount an external drive
+mount_cli_mount ext4 /dev/sdb1 external-drive --mkdir --opts "rw,noatime"
+
+# Check mount status
+mount_cli_status external-drive
+
+# List all mounts
+mount_cli_list
+
+# Unmount when done
+mount_cli_umount external-drive
+
+# Check if something is mounted programmatically
+if mount_is_mounted "$(mount_target_path "backup")"; then
+    echo "Backup drive is mounted"
+fi
+```
+
+### �🛠️ Utility Functions
 
 | Function | Description | Example |
 |----------|-------------|---------|

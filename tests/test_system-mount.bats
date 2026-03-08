@@ -81,16 +81,16 @@ teardown() {
 # given path.  For a file that lives on the root filesystem we expect "/".
 #--------------------------------------------------------------------
 @test "get_mount_point returns '/' for a path on the root filesystem" {
-    result="$(get_mount_point "/etc/passwd")"
+    run get_mount_point "/etc/passwd"
     [ "$status" -eq 0 ]
-    [ "$result" = "/" ]
+    [ "$output" = "/" ]
 }
 
 @test "get_mount_point returns a non‑empty string for any existing path" {
     # Any existing path – use the test directory itself
-    result="$(get_mount_point "$BATS_TEST_DIRNAME")"
+    run get_mount_point "$BATS_TEST_DIRNAME"
     [ "$status" -eq 0 ]
-    [ -n "$result" ]
+    [ -n "$output" ]
 }
 
 #--------------------------------------------------------------------

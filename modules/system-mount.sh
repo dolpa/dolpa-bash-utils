@@ -266,12 +266,37 @@ mount_do_status() {
 #   list command implementation
 # ---------------------------------------------------------------------------
 mount_do_list() {
+    local listed=0
+
     # List only the mounts that are *below* the configured base directory.
     # The output format is deliberately simple – callers can post‑process it.
-    findmnt -r -n -S "${MOUNT_BASE_DIR}" -o TARGET,SOURCE,FSTYPE,OPTIONS |
-        while IFS= read -r line; do
+    if command -v findmnt >/dev/null 2>&1; then
+        findmnt -r -n -o TARGET,SOURCE,FSTYPE,OPTIONS 2>/dev/null |
+            while IFS= read -r line; do
+                case "$line" in
+                    "${MOUNT_BASE_DIR}"*|*" ${MOUNT_BASE_DIR}"*|*" ${MOUNT_BASE_DIR}/"*)
+                        log_info "${line}"
+                        listed=1
+                        ;;
+                esac
+            done
+        return 0
+    fi
+
+    if [[ -r /proc/self/mounts ]]; then
+        awk -v base="${MOUNT_BASE_DIR}" '
+            $2 == base || index($2, base "/") == 1 {
+                printf "%s %s %s %s\n", $2, $1, $3, $4
+            }
+        ' /proc/self/mounts | while IFS= read -r line; do
             log_info "${line}"
+            listed=1
         done
+        return 0
+    fi
+
+    log_error "Unable to list mounts: neither findmnt nor /proc/self/mounts is available"
+    return 1
 }
 
 # ---------------------------------------------------------------------------
@@ -294,7 +319,25 @@ mount_cli_list()       { mount_do_list "$@"; }
 # ---------------------------------------------------------------------------
 # Simple aliases without mount_ prefix for easier testing
 is_mounted()           { mount_is_mounted "$@"; }
-list_mounts()          { mount_do_list "$@"; }
+list_mounts() {
+    if command -v findmnt >/dev/null 2>&1; then
+        findmnt -r -n -o SOURCE,TARGET,FSTYPE,OPTIONS
+        return $?
+    fi
+
+    if [[ -r /proc/self/mounts ]]; then
+        awk '{ printf "%s %s %s %s\n", $1, $2, $3, $4 }' /proc/self/mounts
+        return $?
+    fi
+
+    if command -v mount >/dev/null 2>&1; then
+        mount
+        return $?
+    fi
+
+    echo "Unable to list mounts: no supported command available" >&2
+    return 1
+}
 
 # Get the mount point that contains the given path
 get_mount_point() {

@@ -474,7 +474,7 @@ Environment variables:
 | `prompt_menu(title, option...)` | Show selection menu | `choice=$(prompt_menu "Select" "Option 1" "Option 2")` |
 | `prompt_number(prompt, [min], [max])` | Get numeric input | `num=$(prompt_number "Enter count" 1 100)` |
 
-### � System Mount Functions
+### 💾 System Mount Functions
 
 Safe mounting and unmounting operations under a configurable base directory. Requires root privileges for most operations.
 
@@ -522,7 +522,7 @@ if mount_is_mounted "$(mount_target_path "backup")"; then
 fi
 ```
 
-### �🛠️ Utility Functions
+### 🛠️ Utility Functions
 
 | Function | Description | Example |
 |----------|-------------|---------|
@@ -540,10 +540,6 @@ fi
 | `with_tempdir(cmd...)` | Run command inside a temp directory | `with_tempdir bash -c "pwd"` |
 | `is_semver(version)` | Check semantic version format | `is_semver "$version" && echo "Valid"` |
 | `compare_versions(v1, v2)` | Compare semantic versions | `compare_versions "1.2.0" "1.1.0"` |
-
-### System Mount
-| Function | Description | Example |
-|----------|-------------|---------|
 
 ## 🧪 Testing
 

@@ -141,8 +141,12 @@ declare -A MOUNT_MODE_OPTS=(
 # Resolve a mode name to the option string; abort if the name is unknown.
 mount_resolve_mode() {
     local mode_name="$1"
+    local known_modes
+
     if [[ -z "${MOUNT_MODE_OPTS[${mode_name}]+_}" ]]; then
-        mount_die "Unknown mount mode '${mode_name}'. Known modes: ${!MOUNT_MODE_OPTS[@]}"
+        known_modes="$(printf '%s ' "${!MOUNT_MODE_OPTS[@]}")"
+        known_modes="${known_modes% }"
+        mount_die "Unknown mount mode '${mode_name}'. Known modes: ${known_modes}"
     fi
     printf '%s' "${MOUNT_MODE_OPTS[${mode_name}]}"
 }

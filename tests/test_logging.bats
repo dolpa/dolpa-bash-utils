@@ -85,6 +85,54 @@ teardown() {
     [[ "$output" == *"test fatal"* ]]
 }
 
+@test "log_to_file outputs to console and appends formatted info entry to log file" {
+    local log_file
+    log_file="$(mktemp)"
+
+    run log_to_file "info" "$log_file" "file log message"
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"[INFO]"* ]]
+    [[ "$output" == *"file log message"* ]]
+
+    run grep -E '^\[INFO\].*file log message$' "$log_file"
+    [ "$status" -eq 0 ]
+
+    rm -f "$log_file"
+}
+
+@test "log_to_file supports error level and writes to file" {
+    local log_file
+    log_file="$(mktemp)"
+
+    run log_to_file "error" "$log_file" "file error message"
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"[ERROR]"* ]]
+    [[ "$output" == *"file error message"* ]]
+
+    run grep -E '^\[ERROR\].*file error message$' "$log_file"
+    [ "$status" -eq 0 ]
+
+    rm -f "$log_file"
+}
+
+@test "log_to_file accepts upper-case levels" {
+    local log_file
+    log_file="$(mktemp)"
+
+    run log_to_file "SUCCESS" "$log_file" "upper case level"
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"[SUCCESS]"* ]]
+    [[ "$output" == *"upper case level"* ]]
+
+    run grep -E '^\[SUCCESS\].*upper case level$' "$log_file"
+    [ "$status" -eq 0 ]
+
+    rm -f "$log_file"
+}
+
 @test "log_debug outputs when BASH_UTILS_VERBOSE is true" {
     export BASH_UTILS_VERBOSE=true
     run log_debug "test debug"

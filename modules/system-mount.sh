@@ -111,7 +111,9 @@ mount_target_path() {
 # ---------------------------------------------------------------------------
 mount_is_mounted() {
     local target="$1"
-    findmnt -rn --target "${target}" >/dev/null 2>&1
+    [[ -n "${target}" && -e "${target}" ]] || return 1
+    # --mountpoint checks the exact path, while --target matches parent mounts.
+    findmnt -rn --mountpoint "${target}" >/dev/null 2>&1
 }
 
 # ---------------------------------------------------------------------------

@@ -189,17 +189,23 @@ run_specific_test() {
 
     log_info "Looking for tests matching: $pattern"
 
-    for test_file in "$TEST_DIR"/*.bats; do
-        [[ -f "$test_file" ]] || continue
+    if [[ -f "$pattern" ]]; then
+        test_files+=("$pattern")
+    elif [[ -f "$TEST_DIR/$pattern" ]]; then
+        test_files+=("$TEST_DIR/$pattern")
+    else
+        for test_file in "$TEST_DIR"/*.bats; do
+            [[ -f "$test_file" ]] || continue
 
-        local basename_no_ext
-        basename_no_ext=$(basename "$test_file" .bats)
+            local basename_no_ext
+            basename_no_ext=$(basename "$test_file" .bats)
 
-        if [[ "$basename_no_ext" == *"$pattern"* ]] ||
-           [[ "$(basename "$test_file")" == *"$pattern"* ]]; then
-            test_files+=("$test_file")
-        fi
-    done
+            if [[ "$basename_no_ext" == *"$pattern"* ]] ||
+               [[ "$(basename "$test_file")" == *"$pattern"* ]]; then
+                test_files+=("$test_file")
+            fi
+        done
+    fi
 
     if (( ${#test_files[@]} == 0 )); then
         log_error "No tests found matching pattern: $pattern"

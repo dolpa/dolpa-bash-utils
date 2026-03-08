@@ -33,7 +33,10 @@ teardown() {
     # Unset the functions defined by the module so they do not leak
     # into other test files (readonly variables cannot be unset)
     unset -f is_mounted get_mount_point list_mounts \
-            mount_tmpfs unmount_path 2>/dev/null || true
+            mount_tmpfs unmount_path mount_is_mounted \
+            mount_do_list mount_do_mount mount_do_status \
+            mount_do_unmount mount_cli_mount mount_cli_umount \
+            mount_cli_status mount_cli_list 2>/dev/null || true
 }
 
 #--------------------------------------------------------------------

@@ -47,6 +47,20 @@ mount_die() {
 }
 
 # ---------------------------------------------------------------------------
+# Helper: execute command with optional dry-run and verbose support
+# ---------------------------------------------------------------------------
+run_cmd() {
+    if (( MOUNT_VERBOSE )); then
+        log_info "Executing: $*"
+    fi
+    if (( MOUNT_DRY_RUN )); then
+        log_info "DRY RUN: would execute: $*"
+        return 0
+    fi
+    "$@"
+}
+
+# ---------------------------------------------------------------------------
 # Helper: require the current UID to be 0 (sudo/root)
 # ---------------------------------------------------------------------------
 mount_require_root() {
@@ -272,6 +286,81 @@ mount_cli_mount()      { mount_do_mount "$@"; }
 mount_cli_umount()     { mount_do_unmount "$@"; }   # thin alias – see below
 mount_cli_status()     { mount_do_status "$@"; }
 mount_cli_list()       { mount_do_list "$@"; }
+
+# ---------------------------------------------------------------------------
+# Additional convenience functions for simpler API (used by tests)
+# ---------------------------------------------------------------------------
+# Simple aliases without mount_ prefix for easier testing
+is_mounted()           { mount_is_mounted "$@"; }
+list_mounts()          { mount_do_list "$@"; }
+
+# Get the mount point that contains the given path
+get_mount_point() {
+    local path="$1"
+    local lookup_path
+    local mount_point=""
+
+    [[ -n "$path" ]] || { echo "Path required" >&2; return 1; }
+
+    lookup_path="$path"
+    while [[ ! -e "$lookup_path" ]]; do
+        if [[ "$lookup_path" == "/" || "$lookup_path" == "." || -z "$lookup_path" ]]; then
+            break
+        fi
+        lookup_path="$(dirname "$lookup_path")"
+    done
+
+    [[ -e "$lookup_path" ]] || { echo "Path does not exist: $path" >&2; return 1; }
+
+    # Prefer findmnt when available.
+    if command -v findmnt >/dev/null 2>&1; then
+        mount_point="$(findmnt -rn --target "$lookup_path" --output TARGET 2>/dev/null | head -n 1)"
+    fi
+
+    # Fallback for environments where findmnt does not resolve regular files.
+    if [[ -z "$mount_point" ]] && command -v df >/dev/null 2>&1; then
+        mount_point="$(df -P "$lookup_path" 2>/dev/null | awk 'END { print $NF }')"
+    fi
+
+    if [[ -z "$mount_point" ]]; then
+        echo "No mount point found for: $path" >&2
+        return 1
+    fi
+
+    printf '%s\n' "$mount_point"
+}
+
+# Mount a tmpfs filesystem
+mount_tmpfs() {
+    local target="$1"
+    local size="${2:-1M}"
+    [[ -n "$target" ]] || { echo "Target directory required" >&2; return 1; }
+    
+    mount_require_root
+    [[ -d "$target" ]] || { echo "Target directory does not exist: $target" >&2; return 1; }
+    
+    if mount_is_mounted "$target"; then
+        echo "Target already mounted: $target" >&2
+        return 1
+    fi
+    
+    run_cmd mount -t tmpfs -o size="$size" tmpfs "$target"
+}
+
+# Unmount a path
+unmount_path() {
+    local target="$1"
+    [[ -n "$target" ]] || { echo "Target path required" >&2; return 1; }
+    
+    mount_require_root
+    
+    if ! mount_is_mounted "$target"; then
+        echo "Target is not mounted: $target" >&2
+        return 1
+    fi
+    
+    run_cmd umount "$target"
+}
 
 # ---------------------------------------------------------------------------
 #   umount command implementation (kept separate for clarity)

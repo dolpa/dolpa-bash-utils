@@ -1,14 +1,20 @@
 #===============================================================================
-# modules/system_mount.sh
+# modules/system-mount.sh
 #   Library that implements safe mounting/unmounting under a configurable base
 #   directory.  All functions are pure Bash – they can be sourced by any script.
 #
 #   Dependencies (must be present on the host):
 #       mount, umount, findmnt, awk
 #
-#   The wrapper script (scripts/system_mount.sh) sources this file and only
+#   The wrapper script (scripts/system-mount.sh) sources this file and only
 #   handles CLI parsing / help output.
 #===============================================================================
+
+# Prevent multiple sourcing
+if [[ "${BASH_UTILS_SYSTEM_MOUNT_LOADED:-}" == "true" ]]; then
+    return 0
+fi
+readonly BASH_UTILS_SYSTEM_MOUNT_LOADED="true"
 
 # ---------------------------------------------------------------------------
 # Configuration defaults – can be overridden by the wrapper script

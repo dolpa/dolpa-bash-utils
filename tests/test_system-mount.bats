@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 #=====================================================================
-#  BATS tests for the modules/system_mount.sh module
+#  BATS tests for the modules/system-mount.sh module
 #
 #  As with all other test files in this project the tests:
 #   • source the required library modules in the proper order
@@ -18,7 +18,7 @@ setup() {
     source "${BATS_TEST_DIRNAME}/../modules/config.sh"
     source "${BATS_TEST_DIRNAME}/../modules/logging.sh"
     source "${BATS_TEST_DIRNAME}/../modules/validation.sh"
-    source "${BATS_TEST_DIRNAME}/../modules/system_mount.sh"
+    source "${BATS_TEST_DIRNAME}/../modules/system-mount.sh"
 
     # Deterministic output – no colour codes
     export NO_COLOR=1
@@ -39,18 +39,18 @@ teardown() {
 #--------------------------------------------------------------------
 # Basic sanity checks
 #--------------------------------------------------------------------
-@test "system_mount module loads without errors" {
-    run source "${BATS_TEST_DIRNAME}/../modules/system_mount.sh"
+@test "system-mount module loads without errors" {
+    run source "${BATS_TEST_DIRNAME}/../modules/system-mount.sh"
     [ "$status" -eq 0 ]
 }
 
-@test "system_mount module sets its loaded flag" {
+@test "system-mount module sets its loaded flag" {
     [ -n "${BASH_UTILS_SYSTEM_MOUNT_LOADED:-}" ]
 }
 
-@test "system_mount module prevents multiple sourcing" {
+@test "system-mount module prevents multiple sourcing" {
     # Sourcing a second time must be a no‑op and must not error
-    run source "${BATS_TEST_DIRNAME}/../modules/system_mount.sh"
+    run source "${BATS_TEST_DIRNAME}/../modules/system-mount.sh"
     [ "$status" -eq 0 ]
 }
 

@@ -216,6 +216,7 @@ str_repeat() {
     echo "$result"
 }
 
+# ----------------------------------------------------------------------
 # Pad string to specified length with character
 # Usage: padded=$(str_pad_left "abc" 10 "0")
 # Arguments:
@@ -223,6 +224,7 @@ str_repeat() {
 #   $2 - target length
 #   $3 - padding character (default: space)
 # Returns: padded string via stdout
+# ----------------------------------------------------------------------
 str_pad_left() {
     local string="$1"
     local length="$2"
@@ -240,6 +242,7 @@ str_pad_left() {
     echo "${padding}${string}"
 }
 
+# ----------------------------------------------------------------------
 # Pad string to specified length with character on the right
 # Usage: padded=$(str_pad_right "abc" 10 "0")
 # Arguments:
@@ -247,6 +250,7 @@ str_pad_left() {
 #   $2 - target length
 #   $3 - padding character (default: space)
 # Returns: padded string via stdout
+# ----------------------------------------------------------------------
 str_pad_right() {
     local string="$1"
     local length="$2"
@@ -264,11 +268,13 @@ str_pad_right() {
     echo "${string}${padding}"
 }
 
+# ----------------------------------------------------------------------
 # Check if string is empty or contains only whitespace
 # Usage: if str_is_empty "   "; then ...; fi
 # Arguments:
 #   $1 - string to check
 # Returns: 0 if empty/whitespace only, 1 otherwise
+# ----------------------------------------------------------------------
 str_is_empty() {
     local string="$1"
     local trimmed
@@ -276,6 +282,7 @@ str_is_empty() {
     [[ -z "$trimmed" ]]
 }
 
+# ----------------------------------------------------------------------
 # Extract substring by position and length
 # Usage: substring=$(str_substring "hello world" 6 5)
 # Arguments:
@@ -283,6 +290,7 @@ str_is_empty() {
 #   $2 - start position (0-based)
 #   $3 - length (optional, default: to end of string)
 # Returns: substring via stdout
+# ----------------------------------------------------------------------
 str_substring() {
     local string="$1"
     local start="$2"
@@ -295,11 +303,13 @@ str_substring() {
     fi
 }
 
+# ----------------------------------------------------------------------
 # Reverse a string
 # Usage: reversed=$(str_reverse "hello")
 # Arguments:
 #   $1 - string to reverse
 # Returns: reversed string via stdout
+# ----------------------------------------------------------------------
 str_reverse() {
     local string="$1"
     local reversed=""
@@ -313,7 +323,43 @@ str_reverse() {
     echo "$reversed"
 }
 
+# ----------------------------------------------------------------------
+# str_shorten LENGTH STRING
+#   Shortens STRING to LENGTH characters.
+#   Appends "..." when truncated.
+#   $1 - string to shorten
+#   $2 - maximum length (default: 10)
+#   Returns: shortened string via stdout
+#   Usage:
+#     str_shorten 10 "Very long text"
+# ----------------------------------------------------------------------
+str_shorten() {
+    local max_length
+    local string
+    local ellipsis
+
+    max_length="${1:-10}"
+    shift || true
+    string="$*"
+    ellipsis="..."
+
+    # If string fits, print as is
+    if (( ${#string} <= max_length )); then
+        printf '%s\n' "$string"
+        return 0
+    fi
+
+    # Ensure ellipsis fits
+    if (( max_length > ${#ellipsis} )); then
+        printf '%s%s\n' \
+            "${string:0:max_length-${#ellipsis}}" \
+            "$ellipsis"
+    else
+        printf '%s\n' "${string:0:max_length}"
+    fi
+}
+
 export -f str_upper str_lower str_title str_length str_trim str_ltrim str_rtrim \
           str_starts_with str_ends_with str_contains str_replace str_replace_first \
           str_split str_join str_repeat str_pad_left str_pad_right str_is_empty \
-          str_substring str_reverse
+          str_substring str_reverse str_shorten

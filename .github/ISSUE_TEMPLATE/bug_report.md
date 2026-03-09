@@ -1,11 +1,10 @@
 ---
-
 name: Bug report
 about: Report a bug in the Bash Utils library
 title: "[BUG] "
 labels: bug
 assignees: ''
--------------
+---
 
 ## Description
 

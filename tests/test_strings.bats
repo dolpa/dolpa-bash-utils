@@ -15,7 +15,7 @@ teardown() {
     unset -f str_upper str_lower str_title str_length str_trim str_ltrim str_rtrim 2>/dev/null || true
     unset -f str_starts_with str_ends_with str_contains str_replace str_replace_first 2>/dev/null || true
     unset -f str_split str_join str_repeat str_pad_left str_pad_right str_is_empty 2>/dev/null || true
-    unset -f str_substring str_reverse 2>/dev/null || true
+    unset -f str_substring str_reverse str_shorten 2>/dev/null || true
 }
 
 @test "strings module loads without errors" {
@@ -198,6 +198,30 @@ teardown() {
     run str_reverse "hello"
     [ "$status" -eq 0 ]
     [ "$output" = "olleh" ]
+}
+
+@test "str_shorten returns original string when within max length" {
+    run str_shorten 10 "short"
+    [ "$status" -eq 0 ]
+    [ "$output" = "short" ]
+}
+
+@test "str_shorten truncates and appends ellipsis when max length allows" {
+    run str_shorten 10 "Very long text"
+    [ "$status" -eq 0 ]
+    [ "$output" = "Very lo..." ]
+}
+
+@test "str_shorten truncates without ellipsis when max length is too small" {
+    run str_shorten 3 "abcdef"
+    [ "$status" -eq 0 ]
+    [ "$output" = "abc" ]
+}
+
+@test "str_shorten uses default max length of 10" {
+    run str_shorten
+    [ "$status" -eq 0 ]
+    [ "$output" = "" ]
 }
 
 #===============================================================================

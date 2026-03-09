@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+
+contact_links:
+
+- name: 📚 Documentation
+  url: https://github.com/dolpa/dolpa-bash-utils
+  about: Please check the documentation before opening an issue.
+
+- name: 💬 Discussions
+  url: https://github.com/dolpa/dolpa-bash-utils/discussions
+  about: Ask questions or discuss ideas here.

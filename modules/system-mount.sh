@@ -445,3 +445,5 @@ mount_do_unmount() {
 
     run_cmd "${cmd[@]}" "${target}"
 }
+
+export -f mount_tmpfs unmount_path get_mount_point is_mounted list_mounts mount_set_base_dir mount_get_base_dir mount_set_verbose mount_set_dry_run mount_cli_mount mount_cli_umount mount_cli_status mount_cli_list

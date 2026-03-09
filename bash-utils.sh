@@ -18,6 +18,7 @@
 # - filesystem.sh: Comprehensive filesystem operations and path analysis
 # - network.sh: Network utilities for connectivity and file transfers
 # - system.sh: System detection and hardware information
+# - system-mount.sh: Mount management and filesystem operations
 # - utils.sh: General utilities, retry logic, formatters
 # - strings.sh: String manipulation and text processing
 # - prompts.sh: Interactive user input and menus
@@ -54,6 +55,7 @@ BASH_UTILS_MODULES_DIR="${BASH_UTILS_DIR}/modules"
 # - filesystem.sh: Comprehensive filesystem operations, path analysis, and file manipulation
 # - network.sh: Network utilities for connectivity, resolution, and file transfers
 # - system.sh: System detection and hardware information gathering
+# - system-mount.sh: Mount management, tmpfs handling, and filesystem operations
 # - utils.sh: General purpose utilities and helper functions
 # - strings.sh: String processing, manipulation, and formatting
 # - prompts.sh: Interactive user input, confirmations, and menus
@@ -75,6 +77,8 @@ source "${BASH_UTILS_MODULES_DIR}/files.sh"
 source "${BASH_UTILS_MODULES_DIR}/filesystem.sh"
 # shellcheck source=./modules/system.sh
 source "${BASH_UTILS_MODULES_DIR}/system.sh"
+# shellcheck source=./modules/system-mount.sh
+source "${BASH_UTILS_MODULES_DIR}/system-mount.sh"
 # shellcheck source=./modules/utils.sh
 source "${BASH_UTILS_MODULES_DIR}/utils.sh"
 # shellcheck source=./modules/strings.sh
@@ -123,6 +127,7 @@ Loaded Modules:
   validation.sh  - Input validation and system checking functions
   files.sh       - File and directory manipulation utilities
   filesystem.sh  - Comprehensive filesystem operations and path analysis
+  system-mount.sh - Mount management, tmpfs handling, and filesystem operations
   network.sh     - Network utilities for connectivity and file transfers
   http.sh        - Lightweight HTTP client wrapper (curl / wget)
   system.sh      - Operating system and hardware detection
@@ -144,6 +149,7 @@ Available Functions:
   ANSI Formatting: ansi_red, ansi_green, ansi_yellow, ansi_blue, ansi_bold, ansi_underline, ansi_error, ansi_success, ansi_warning, ansi_info
   Validation: validate_file, validate_directory, validate_system_name, validate_email, validate_url
   System: get_os_name, get_os_version, auto_detect_system, command_exists, is_root, check_privileges
+  System Mount: mount_tmpfs, unmount_path, get_mount_point, is_mounted, list_mounts, mount_set_base_dir, mount_get_base_dir, mount_set_verbose, mount_set_dry_run, mount_cli_mount, mount_cli_umount, mount_cli_status, mount_cli_list
   File Operations: create_backup, ensure_directory, get_absolute_path, get_script_dir
   Applications: app_is_installed, app_install_docker, app_remove_docker
   Utilities: confirm, retry, show_spinner, seconds_to_human, bytes_to_human, generate_random_string

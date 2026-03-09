@@ -1,11 +1,10 @@
 ---
-
 name: Feature request
 about: Suggest a new feature for the Bash Utils library
 title: "[FEATURE] "
 labels: enhancement
 assignees: ''
--------------
+---
 
 ## Problem
 

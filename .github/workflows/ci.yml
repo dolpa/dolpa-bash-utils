@@ -1,15 +1,30 @@
 name: Tests & Release
 
 on:
+  create:
   push:
-    branches: [ main, feature/*, release/*, fix/* ]
+    branches:
+      - main
+      - 'feature/**'
+      - 'release/**'
+      - 'fix/**'
   pull_request:
     branches: [ main ]
 
 jobs:
   test:
+    # Only apply the "ref_type" check IF the event is a 'create' event.
+    # For 'push' and 'pull_request', the 'on:' filters already did the work.
+    if: |
+      github.event_name == 'push' || 
+      github.event_name == 'pull_request' || 
+      (github.event_name == 'create' && github.event.ref_type == 'branch' && (
+        startsWith(github.event.ref, 'feature/') || 
+        startsWith(github.event.ref, 'release/') || 
+        startsWith(github.event.ref, 'fix/')
+      ))
     runs-on: ubuntu-latest
-    strategy:
+    strategy: 
       matrix:
         bash-version: ['4.4', '5.0', '5.1', 'latest']
     
@@ -167,6 +182,15 @@ jobs:
         echo "Compatibility tests completed for ${{ matrix.os }}"
 
   security-scan:
+    if: |
+      github.event_name == 'push' || 
+      github.event_name == 'pull_request' || 
+      (github.event_name == 'create' && github.event.ref_type == 'branch' && (
+        startsWith(github.event.ref, 'feature/') || 
+        startsWith(github.event.ref, 'release/') || 
+        startsWith(github.event.ref, 'fix/')
+      ))
+
     runs-on: ubuntu-latest
     
     steps:
@@ -194,9 +218,8 @@ jobs:
   # -------------------------------------------------
   release:
     # Run only on pushes to the *release* branch (or any branch you prefer)
-    if: >
-      (github.ref_name == 'main' ||
-      startsWith(github.ref_name, 'release/'))
+    if: >-
+      (github.ref_name == 'main' || startsWith(github.ref_name, 'release/'))
       && success()
 
     needs:

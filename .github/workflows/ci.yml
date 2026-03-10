@@ -1,22 +1,39 @@
 name: Tests & Release
 
 on:
+  create:
   push:
-    branches: [ main, feature/*, release/*, fix/* ]
+    branches:
+      - main
+      - 'feature/**'
+      - 'release/**'
+      - 'fix/**'
   pull_request:
     branches: [ main ]
 
 jobs:
   test:
+    # Only apply the "ref_type" check IF the event is a 'create' event.
+    # For 'push' and 'pull_request', the 'on:' filters already did the work.
+    if: |
+      github.event_name == 'push' || 
+      github.event_name == 'pull_request' || 
+      (github.event_name == 'create' && github.event.ref_type == 'branch' && (
+        startsWith(github.event.ref, 'feature/') || 
+        startsWith(github.event.ref, 'release/') || 
+        startsWith(github.event.ref, 'fix/')
+      ))
     runs-on: ubuntu-latest
     strategy:
       matrix:
         bash-version: ['4.4', '5.0', '5.1', 'latest']
     
     steps:
+    # 1. Checkout the repo (including tags)
     - name: Checkout repository
       uses: actions/checkout@v4
-      
+    
+    # 2. Install the specified Bash version (if not "latest")
     - name: Install Bash ${{ matrix.bash-version }}
       run: |
         # If "latest" → use system bash
@@ -44,7 +61,8 @@ jobs:
 
         echo "Installed Bash version:"
         /usr/local/bin/bash --version
-        
+    
+    # 3. Install system dependencies
     - name: Install system dependencies
       run: |
         sudo apt-get update
@@ -54,7 +72,7 @@ jobs:
           bc \
           unzip \
           git
-          
+    # 4. Install bats-core
     - name: Install bats-core
       run: |
         if [[ ! -d bats-core-master ]]; then
@@ -69,7 +87,8 @@ jobs:
         
         # Verify installation
         bats --version
-        
+    
+    # 5. Verify test environment
     - name: Verify test environment
       run: |
         echo "==> Verifying test environment"
@@ -82,20 +101,24 @@ jobs:
         echo "GH ref name. : ${{github.ref_name }}"
         echo "GH ref.      : ${{github.ref }}"
         ls -la
-        
+    
+    # 6. Run the complete test suite
     - name: Run complete test suite
       run: |
         echo "==> Running complete test suite"
         bats tests/*.bats
 
   test-docker:
+    # Temporarily disabled; enable if Docker-based tests are needed
     runs-on: ubuntu-latest
     if: false # Disabled by default; enable if Docker tests are needed
     
     steps:
+    # 1. Checkout the repo (including tags)
     - name: Checkout repository
       uses: actions/checkout@v4
-      
+    
+    # 2. Build Docker image
     - name: Build Docker image
       run: |
         if [[ -f Dockerfile ]]; then
@@ -104,7 +127,7 @@ jobs:
         else
           echo "No Dockerfile found, skipping Docker tests"
         fi
-        
+    # 3. Run tests in Docker container    
     - name: Run tests in Docker
       run: |
         if docker images | grep -q hhgttg-test; then
@@ -115,27 +138,41 @@ jobs:
         fi
 
   compatibility-test:
+    # work only on pushes/PRs to main or feature/release/fix branches, or on branch creation of those types
+    if: |
+      github.event_name == 'push' || 
+      github.event_name == 'pull_request' || 
+      (github.event_name == 'create' && github.event.ref_type == 'branch' && (
+        startsWith(github.event.ref, 'feature/') || 
+        startsWith(github.event.ref, 'release/') || 
+        startsWith(github.event.ref, 'fix/')
+      ))
+    
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, ubuntu-22.04, ubuntu-24.04, macos-latest]
         
     steps:
+    # 1. Checkout the repo (including tags)
     - name: Checkout repository
       uses: actions/checkout@v4
       
+    # 2. Install dependencies based on OS
     - name: Install dependencies (Ubuntu)
       if: startsWith(matrix.os, 'ubuntu')
       run: |
         sudo apt-get update
         sudo apt-get install -y curl wget bc unzip
-        
+    
+    # 3. Install dependencies (macOS)
     - name: Install dependencies (macOS)
       if: startsWith(matrix.os, 'macos')
       run: |
         brew update || true
         brew install bash bc curl wget || true
         
+    # 4. Install the latest bats-core (for compatibility testing)
     - name: Install bats-core
       run: |
         curl -L -O https://github.com/bats-core/bats-core/archive/refs/heads/master.zip
@@ -147,14 +184,16 @@ jobs:
         if [[ -f "$HOME/.local/bin/bats" ]]; then
           echo "$HOME/.local/bin" >> $GITHUB_PATH
         fi
-        
+    
+    # 5. Verify environment and run tests
     - name: Verify environment
       run: |
         echo "OS: ${{ matrix.os }}"
         echo "Bash version: $(bash --version | head -n1)"
         echo "Bats version: $(bats --version || echo 'Bats not found in PATH')"
         which bats || echo "Bats location not found"
-        
+    
+    # 6. Run the compatibility tests (core tests that should work across all platforms)
     - name: Run core tests
       if: false # Disabled by default; enable if Docker tests are needed
       run: |
@@ -167,19 +206,32 @@ jobs:
         echo "Compatibility tests completed for ${{ matrix.os }}"
 
   security-scan:
+    # work only on pushes/PRs to main or feature/release/fix branches, or on branch creation of those types
+    if: |
+      github.event_name == 'push' || 
+      github.event_name == 'pull_request' || 
+      (github.event_name == 'create' && github.event.ref_type == 'branch' && (
+        startsWith(github.event.ref, 'feature/') || 
+        startsWith(github.event.ref, 'release/') || 
+        startsWith(github.event.ref, 'fix/')
+      ))
+
     runs-on: ubuntu-latest
     
     steps:
+    # 1. Checkout the repo (including tags)
     - name: Checkout repository
       uses: actions/checkout@v4
-      
+
+    # 2. Shellcheck
     - name: Run shellcheck
       uses: ludeeus/action-shellcheck@master
       with:
         severity: error
         scandir: '.'
         ignore_paths: bats-core-master test_helper 
-        
+    
+    # 3. Check repo for secrets (trufflehog)
     - name: Check for secrets
       uses: trufflesecurity/trufflehog@main
       with:
@@ -194,9 +246,9 @@ jobs:
   # -------------------------------------------------
   release:
     # Run only on pushes to the *release* branch (or any branch you prefer)
-    if: >
-      (github.ref_name == 'main' ||
-      startsWith(github.ref_name, 'release/'))
+    if: >-
+      github.event_name == 'push'
+      && (github.ref_name == 'main' || startsWith(github.ref_name, 'release/'))
       && success()
 
     needs:

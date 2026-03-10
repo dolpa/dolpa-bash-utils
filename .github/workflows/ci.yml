@@ -24,7 +24,7 @@ jobs:
         startsWith(github.event.ref, 'fix/')
       ))
     runs-on: ubuntu-latest
-    strategy: 
+    strategy:
       matrix:
         bash-version: ['4.4', '5.0', '5.1', 'latest']
     

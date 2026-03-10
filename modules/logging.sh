@@ -27,6 +27,20 @@ _get_timestamp() {
     date +"${BASH_UTILS_TIMESTAMP_FORMAT}"
 }
 
+declare -A BASH_UTILS_LOG_LEVEL_MAP=(
+    [TRACE]=0
+    [DEBUG]=1
+    [INFO]=2
+    [SUCCESS]=3
+    [WARNING]=4
+    [ERROR]=5
+    [CRITICAL]=6
+)
+
+# Normalize configured minimum level once
+_BASH_UTILS_LOG_LEVEL_NAME="$(printf '%s' "${BASH_UTILS_LOG_LEVEL:-INFO}" | tr '[:lower:]' '[:upper:]')"
+BASH_UTILS_LOG_MIN_LEVEL="${BASH_UTILS_LOG_LEVEL_MAP[$_BASH_UTILS_LOG_LEVEL_NAME]:-2}"
+
 # Internal logging function used by all public log functions
 # Formats and outputs log messages with level, color, and optional timestamp
 # Arguments:
@@ -37,14 +51,27 @@ _log() {
     local level="$1"
     local color="$2"
     local message="$3"
+    local min_level_num
+
+    local normalized_level
+    local level_num
+    local normalized_min_level
+
+    normalized_level="$(printf '%s' "$level" | tr '[:lower:]' '[:upper:]')"
+    level_num="${BASH_UTILS_LOG_LEVEL_MAP[$normalized_level]}"
+
+    echo "min_level_num: $min_level_num, level_num: $level_num" >&2
+    if (( level_num < min_level_num )); then
+        return 0
+    fi
+
     local timestamp
-    
     timestamp=$(_get_timestamp)
-    
+
     if [[ "${BASH_UTILS_TIMESTAMP:-true}" == "true" ]]; then
-        echo -e "${color}[${level}]${COLOR_NC} ${timestamp} - ${message}"
+        printf "%b[%s]%b %s - %s\n" "$color" "$level" "$COLOR_NC" "$timestamp" "$message"
     else
-        echo -e "${color}[${level}]${COLOR_NC} ${message}"
+        printf "%b[%s]%b %s\n" "$color" "$level" "$COLOR_NC" "$message"
     fi
 }
 
@@ -125,29 +152,34 @@ log_fatal() {
 #   $2 - log file path
 #   $3 - message text to log
 log_to_file() {
-    local level="$1"
-    local log_file="$2"
+    local level
+    local log_file
     local normalized_level
     local message
     local timestamp
+
+    level="$1"
+    log_file="$2"
 
     shift 2
     message="$*"
     normalized_level="$(printf '%s' "$level" | tr '[:upper:]' '[:lower:]')"
 
+    # Print log to the terminal using the appropriate log function based on the level
     case "$normalized_level" in
-        trace)    log_trace "$message" ;;
-        debug)    log_debug "$message" ;;
-        info)     log_info "$message" ;;
-        success)  log_success "$message" ;;
+        trace)      log_trace "$message" ;;
+        debug)      log_debug "$message" ;;
+        info)       log_info "$message" ;;
+        success)    log_success "$message" ;;
         warning|warn)
-                  log_warning "$message" ;;
-        error)    log_error "$message" ;;
+                    log_warning "$message" ;;
+        error)      log_error "$message" ;;
         critical|fatal)
-                  log_critical "$message" ;;
-        *)        log_info "$message" ;;
+                    log_critical "$message" ;;
+        *)          log_info "$message" ;;
     esac
 
+    # Write the log message to the specified file with timestamp and level
     if [[ -n "$log_file" ]]; then
         timestamp=$(_get_timestamp)
         if [[ "${BASH_UTILS_TIMESTAMP:-true}" == "true" ]]; then
@@ -171,11 +203,12 @@ log_header() {
     local line_length=${#message}
     local separator=$(printf '%*s' "$line_length" | tr ' ' '=')
     
-    echo -e "${COLOR_BOLD}${COLOR_BLUE}"
-    echo "$separator"
-    echo "$message"
-    echo "$separator"
-    echo -e "${COLOR_NC}"
+    printf "%b\n%s\n%s\n%s\n%b" \
+        "$COLOR_BOLD$COLOR_BLUE" \
+        "$separator" \
+        "$message" \
+        "$separator" \
+        "$COLOR_NC"
 }
 
 # Create a formatted section header
@@ -184,7 +217,7 @@ log_header() {
 # Arguments: message components (concatenated with spaces)
 log_section() {
     local message="$*"
-    echo -e "${COLOR_BOLD}${COLOR_CYAN}### ${message}${COLOR_NC}"
+    printf "${COLOR_BOLD}${COLOR_CYAN}### %s${COLOR_NC}\n" "$message"
 }
 
 # Create a numbered step indicator
@@ -196,7 +229,7 @@ log_section() {
 log_step() {
     local step_number="$1"
     local message="$2"
-    echo -e "${COLOR_BOLD}${COLOR_GREEN}Step ${step_number}:${COLOR_NC} ${message}"
+    printf "${COLOR_BOLD}${COLOR_GREEN}Step %s:${COLOR_NC} %s\n" "$step_number" "$message"
 }
 
 # Export all logging functions for use in other scripts

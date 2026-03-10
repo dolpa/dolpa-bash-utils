@@ -219,7 +219,8 @@ jobs:
   release:
     # Run only on pushes to the *release* branch (or any branch you prefer)
     if: >-
-      (github.ref_name == 'main' || startsWith(github.ref_name, 'release/'))
+      github.event_name == 'push'
+      && (github.ref_name == 'main' || startsWith(github.ref_name, 'release/'))
       && success()
 
     needs:

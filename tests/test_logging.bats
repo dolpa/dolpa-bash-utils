@@ -171,14 +171,20 @@ teardown() {
     [ -z "$output" ]
 }
 
-@test "minimum log level filters lower‑priority logs" {
+@test "minimum log level filters lower-priority logs" {
     export BASH_UTILS_LOG_LEVEL=WARNING
 
-    run log_info "this must be hidden"
+    run bash -c '
+        source "'"$BATS_TEST_DIRNAME"'/../modules/logging.sh"
+        log_info "this must be hidden"
+    '
     [ "$status" -eq 0 ]
     [ -z "$output" ]
 
-    run log_warning "this must appear"
+    run bash -c '
+        source "'"$BATS_TEST_DIRNAME"'/../modules/logging.sh"
+        log_warning "this must appear"
+    '
     [ "$status" -eq 0 ]
     [[ "$output" == *"[WARNING]"* ]]
 }

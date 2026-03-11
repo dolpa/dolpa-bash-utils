@@ -35,11 +35,16 @@ declare -A BASH_UTILS_LOG_LEVEL_MAP=(
     [CRITICAL]=6
 )
 
-# Normalize configured log level (default INFO)
-BASH_UTILS_LOG_LEVEL_NAME="$(printf '%s' "${BASH_UTILS_LOG_LEVEL:-INFO}" | tr '[:lower:]' '[:upper:]')"
-
-# Resolve numeric level once
-BASH_UTILS_LOG_MIN_LEVEL="${BASH_UTILS_LOG_LEVEL_MAP[$BASH_UTILS_LOG_LEVEL_NAME]:-2}"
+# --------------------------------------------------------------------
+# Helper: return the numeric value of the *current* configured level.
+# This function is called **every time a message is emitted**, so a
+# later change of BASH_UTILS_LOG_LEVEL is honoured.
+# --------------------------------------------------------------------
+_log_configured_level() {
+    local cfg_level="${BASH_UTILS_LOG_LEVEL:-INFO}"     # fall back to INFO
+    cfg_level=${cfg_level^^}                                 # upper‑case (bash ≥4)
+    printf '%d' "${BASH_UTILS_LOG_LEVEL_MAP[$cfg_level]:-2}"
+}
 
 # Internal logging function used by all public log functions
 # Formats and outputs log messages with level, color, and optional timestamp
@@ -52,13 +57,20 @@ _log() {
     local color="$2"
     local message="$3"
 
-    local normalized_level
-    normalized_level="$(printf '%s' "$level" | tr '[:lower:]' '[:upper:]')"
+    # Normalise the level name to upper‑case (bash 4+ supports ${var^^})
+    local _normalized_lvl
+    local lvl_num
+    # Upper‑case the level for consistent mapping and display
+    _normalized_lvl="${level^^}"
+    # Numeric severity of the *requested* message
+    lvl_num="${BASH_UTILS_LOG_LEVEL_MAP[$_normalized_lvl]:-2}"
 
-    local level_num="${BASH_UTILS_LOG_LEVEL_MAP[$normalized_level]:-2}"
+    # Numeric severity of the *configured* threshold
+    local cfg_num
+    cfg_num=$(_log_configured_level)
 
     # Skip messages below configured level
-    if (( level_num < BASH_UTILS_LOG_MIN_LEVEL )); then
+    if (( lvl_num < cfg_num )); then
         return 0
     fi
 
@@ -67,10 +79,10 @@ _log() {
 
     if [[ "${BASH_UTILS_TIMESTAMP:-true}" == "true" ]]; then
         printf "%b[%s]%b %s - %s\n" \
-            "$color" "$normalized_level" "${COLOR_NC:-}" "$timestamp" "$message"
+            "$color" "$_normalized_lvl" "${COLOR_NC:-}" "$timestamp" "$message"
     else
         printf "%b[%s]%b %s\n" \
-            "$color" "$normalized_level" "${COLOR_NC:-}" "$message"
+            "$color" "$_normalized_lvl" "${COLOR_NC:-}" "$message"
     fi
 }
 

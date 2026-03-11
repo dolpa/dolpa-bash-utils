@@ -164,8 +164,6 @@ teardown() {
     # We only care that nothing is printed, so we do not assert on $status.
     export BASH_UTILS_DEBUG=false
     # (re‑source to make the library pick up the new value)
-    . "$PROJECT_ROOT/src/config.sh"
-    . "$PROJECT_ROOT/src/logging.sh"
 
     run log_trace "debug off"
     # When debugging is off the function returns 1 – that is expected.
@@ -173,20 +171,11 @@ teardown() {
     [ -z "$output" ]
 }
 
-@test "minimum log level filters lower‑priority logs (numeric level)" {
-    # The logging library stores the numeric value of the level when it is
-    # sourced, therefore we have to (re)source the library **after** the
-    # environment variable is set.  Using the numeric value that corresponds
-    # to the WARNING level guarantees the comparison works on every version
-    # of the library.
-    export BASH_UTILS_LOG_LEVEL=4   # 4 == WARNING in the library
-    # (re‑source so the internal cache is rebuilt)
-    . "$PROJECT_ROOT/src/config.sh"
-    . "$PROJECT_ROOT/src/logging.sh"
+@test "minimum log level filters lower‑priority logs" {
+    export BASH_UTILS_LOG_LEVEL=WARNING
 
     run log_info "this must be hidden"
     [ "$status" -eq 0 ]
-    # log_info is lower than WARNING, therefore nothing should be printed.
     [ -z "$output" ]
 
     run log_warning "this must appear"

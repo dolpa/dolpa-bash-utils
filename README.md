@@ -37,7 +37,7 @@ bash-utils/
 │   ├── ⚙️ config.sh           # Configuration management
 │   ├── 🔐 crypto.sh           # Cryptographic utilities
 │   ├── 🌍 env.sh              # Environment variable handling
-│   ├── ⚡ exec.sh             # Process execution and management
+│   ├── ⚡ exec.sh              # Process execution and management
 │   ├── 📁 files.sh            # File manipulation utilities
 │   ├── 🗃️ filesystem.sh       # File system operations
 │   ├── 📝 logging.sh          # Comprehensive logging system
@@ -58,7 +58,7 @@ bash-utils/
     ├── 📄 README.md           # Test documentation
     ├── 🧪 test_helper.sh      # Test helper functions
     ├── 🧪 test_ansi.bats      # ANSI formatting tests
-    └── 🧪 test_*.bats        # Individual module tests (BATS framework)
+    └── 🧪 test_*.bats         # Individual module tests (BATS framework)
 ```
 
 ## ✨ Key Features

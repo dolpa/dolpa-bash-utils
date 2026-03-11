@@ -16,24 +16,35 @@ if [[ "${BASH_UTILS_LOGGING_LOADED:-}" == "true" ]]; then
 fi
 readonly BASH_UTILS_LOGGING_LOADED="true"
 
-#===============================================================================
+# --------------------------------------------------------------------
 # LOGGING FUNCTIONS
-#===============================================================================
+# --------------------------------------------------------------------
 
 # Get current timestamp using configured format
 _get_timestamp() {
     date +"${BASH_UTILS_TIMESTAMP_FORMAT}"
 }
 
-declare -A BASH_UTILS_LOG_LEVEL_MAP=(
-    [TRACE]=0
-    [DEBUG]=1
-    [INFO]=2
-    [SUCCESS]=3
-    [WARNING]=4
-    [ERROR]=5
-    [CRITICAL]=6
-)
+# Convert level name (or numeric string) to numeric severity.
+# Uses a case statement so it also works when functions are executed
+# in subshells where associative arrays are not preserved.
+_log_level_to_number() {
+    local level
+    level="${1:-INFO}"
+    level="${level^^}"
+
+    case "$level" in
+        TRACE) printf '0' ;;
+        DEBUG) printf '1' ;;
+        INFO) printf '2' ;;
+        SUCCESS) printf '3' ;;
+        WARNING|WARN) printf '4' ;;
+        ERROR) printf '5' ;;
+        CRITICAL|FATAL) printf '6' ;;
+        ''|*[!0-9]*) printf '2' ;;
+        *) printf '%d' "$level" ;;
+    esac
+}
 
 # --------------------------------------------------------------------
 # Helper: return the numeric value of the *current* configured level.
@@ -41,9 +52,17 @@ declare -A BASH_UTILS_LOG_LEVEL_MAP=(
 # later change of BASH_UTILS_LOG_LEVEL is honoured.
 # --------------------------------------------------------------------
 _log_configured_level() {
-    local cfg_level="${BASH_UTILS_LOG_LEVEL:-INFO}"     # fall back to INFO
+    local cfg_level
+    cfg_level="${BASH_UTILS_LOG_LEVEL:-INFO}"     # fall back to INFO
+
+    # Normalize: remove CR/LF and surrounding whitespace, then upper-case.
+    cfg_level="${cfg_level//$'\r'/}"
+    cfg_level="${cfg_level//$'\n'/}"
+    cfg_level="${cfg_level#"${cfg_level%%[![:space:]]*}"}"
+    cfg_level="${cfg_level%"${cfg_level##*[![:space:]]}"}"
     cfg_level=${cfg_level^^}                                 # upper‑case (bash ≥4)
-    printf '%d' "${BASH_UTILS_LOG_LEVEL_MAP[$cfg_level]:-2}"
+
+    _log_level_to_number "$cfg_level"
 }
 
 # Internal logging function used by all public log functions
@@ -63,7 +82,7 @@ _log() {
     # Upper‑case the level for consistent mapping and display
     _normalized_lvl="${level^^}"
     # Numeric severity of the *requested* message
-    lvl_num="${BASH_UTILS_LOG_LEVEL_MAP[$_normalized_lvl]:-2}"
+    lvl_num=$(_log_level_to_number "$_normalized_lvl")
 
     # Numeric severity of the *configured* threshold
     local cfg_num
@@ -127,9 +146,9 @@ log_fatal() {
     log_critical "$@"
 }
 
-#===============================================================================
+# ---------------------------------------------------------------------
 # FILE LOGGING
-#===============================================================================
+# ---------------------------------------------------------------------
 
 # Logs both to terminal and file
 log_to_file() {
@@ -170,9 +189,9 @@ log_to_file() {
     fi
 }
 
-#===============================================================================
+# ---------------------------------------------------------------------
 # SPECIAL FORMATTING FUNCTIONS
-#===============================================================================
+# ---------------------------------------------------------------------
 
 # Create a formatted header with border lines
 # Used for major section headers in script output
@@ -219,9 +238,9 @@ log_step() {
         "$message"
 }
 
-#===============================================================================
+# ---------------------------------------------------------------------
 # EXPORT FUNCTIONS
-#===============================================================================
+# ---------------------------------------------------------------------
 
 export -f log_trace log_debug log_info log_success log_warning log_warn
 export -f log_error log_critical log_fatal log_to_file

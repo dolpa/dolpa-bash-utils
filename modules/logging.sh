@@ -17,6 +17,20 @@ fi
 readonly BASH_UTILS_LOGGING_LOADED="true"
 
 # --------------------------------------------------------------------
+# LOG LEVEL CONFIGURATION
+# --------------------------------------------------------------------
+
+declare -A BASH_UTILS_LOG_LEVEL_MAP=(
+    [TRACE]=0
+    [DEBUG]=1
+    [INFO]=2
+    [SUCCESS]=3
+    [WARNING]=4
+    [ERROR]=5
+    [CRITICAL]=6
+)
+
+# --------------------------------------------------------------------
 # LOGGING FUNCTIONS
 # --------------------------------------------------------------------
 
@@ -25,71 +39,19 @@ _get_timestamp() {
     date +"${BASH_UTILS_TIMESTAMP_FORMAT}"
 }
 
-# Convert level name (or numeric string) to numeric severity.
-# Uses a case statement so it also works when functions are executed
-# in subshells where associative arrays are not preserved.
-_log_level_to_number() {
-    local level
-    level="${1:-INFO}"
-    level="${level^^}"
-
-    case "$level" in
-        TRACE) printf '0' ;;
-        DEBUG) printf '1' ;;
-        INFO) printf '2' ;;
-        SUCCESS) printf '3' ;;
-        WARNING|WARN) printf '4' ;;
-        ERROR) printf '5' ;;
-        CRITICAL|FATAL) printf '6' ;;
-        ''|*[!0-9]*) printf '2' ;;
-        *) printf '%d' "$level" ;;
-    esac
-}
-
-# --------------------------------------------------------------------
-# Helper: return the numeric value of the *current* configured level.
-# This function is called **every time a message is emitted**, so a
-# later change of BASH_UTILS_LOG_LEVEL is honoured.
-# --------------------------------------------------------------------
-_log_configured_level() {
-    local cfg_level
-    cfg_level="${BASH_UTILS_LOG_LEVEL:-INFO}"     # fall back to INFO
-
-    # Normalize: remove CR/LF and surrounding whitespace, then upper-case.
-    cfg_level="${cfg_level//$'\r'/}"
-    cfg_level="${cfg_level//$'\n'/}"
-    cfg_level="${cfg_level#"${cfg_level%%[![:space:]]*}"}"
-    cfg_level="${cfg_level%"${cfg_level##*[![:space:]]}"}"
-    cfg_level=${cfg_level^^}                                 # upper‑case (bash ≥4)
-
-    _log_level_to_number "$cfg_level"
-}
-
-# Internal logging function used by all public log functions
-# Formats and outputs log messages with level, color, and optional timestamp
-# Arguments:
-#   $1 - log level (e.g., INFO, ERROR, DEBUG)
-#   $2 - color code for the level
-#   $3 - message text to log
 _log() {
     local level="$1"
     local color="$2"
     local message="$3"
 
-    # Normalise the level name to upper‑case (bash 4+ supports ${var^^})
-    local _normalized_lvl
-    local lvl_num
-    # Upper‑case the level for consistent mapping and display
-    _normalized_lvl="${level^^}"
-    # Numeric severity of the *requested* message
-    lvl_num=$(_log_level_to_number "$_normalized_lvl")
+    local normalized_lvl="${level^^}"
+    local normalized_cfg_min_lvl="${BASH_UTILS_LOG_LEVEL:-INFO}"
+    normalized_cfg_min_lvl="${normalized_cfg_min_lvl^^}"
 
-    # Numeric severity of the *configured* threshold
-    local cfg_num
-    cfg_num=$(_log_configured_level)
+    local lvl_num="${BASH_UTILS_LOG_LEVEL_MAP[$normalized_lvl]:-2}"
+    local cfg_min_lvl_num="${BASH_UTILS_LOG_LEVEL_MAP[$normalized_cfg_min_lvl]:-2}"
 
-    # Skip messages below configured level
-    if (( lvl_num < cfg_num )); then
+    if (( lvl_num < cfg_min_lvl_num )); then
         return 0
     fi
 
@@ -98,10 +60,10 @@ _log() {
 
     if [[ "${BASH_UTILS_TIMESTAMP:-true}" == "true" ]]; then
         printf "%b[%s]%b %s - %s\n" \
-            "$color" "$_normalized_lvl" "${COLOR_NC:-}" "$timestamp" "$message"
+            "$color" "$normalized_lvl" "${COLOR_NC:-}" "$timestamp" "$message"
     else
         printf "%b[%s]%b %s\n" \
-            "$color" "$_normalized_lvl" "${COLOR_NC:-}" "$message"
+            "$color" "$normalized_lvl" "${COLOR_NC:-}" "$message"
     fi
 }
 

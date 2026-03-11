@@ -63,7 +63,7 @@ bash-utils/
 
 ## ✨ Key Features
 
-- 🎨 **Rich Logging** - Color-coded logging with timestamps and multiple log levels
+- 🎨 **Rich Logging** - Color-coded logging with timestamps, multiple log levels, and configurable minimum level filtering
 - 🌈 **ANSI Formatting** - Comprehensive terminal colors and text formatting utilities
 - ✅ **Input Validation** - Comprehensive validation for files, directories, emails, URLs, and more
 - 🖥️ **System Detection** - Auto-detect system information using DMI data
@@ -166,10 +166,13 @@ validate_file "/etc/passwd"
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `BASH_UTILS_VERBOSE` | Enable verbose logging | `false` |
-| `BASH_UTILS_LOG_LEVEL` | Set minimum log level | `info` |
+| `BASH_UTILS_LOG_LEVEL` | Set minimum log level threshold (`TRACE`..`CRITICAL` or numeric `0`..`6`) | `INFO` |
 | `BASH_UTILS_COLOR` | Enable/disable colors | `auto` |
 | `BASH_UTILS_LOG_FILE` | Log to file | `""` |
 | `BASH_UTILS_HTTP_TIMEOUT` | Timeout (seconds) for HTTP operations | `10` |
+
+`BASH_UTILS_LOG_LEVEL` suppresses any message below the configured severity.
+Examples: `WARNING` hides `TRACE/DEBUG/INFO/SUCCESS`; `4` behaves the same as `WARNING`.
 
 ## 📚 Module Reference
 
@@ -312,9 +315,12 @@ Configure the library behavior using environment variables:
 | `BASH_UTILS_VERBOSE` | `false` | Enable verbose/debug logging |
 | `BASH_UTILS_DEBUG` | `false` | Enable trace-level debugging |
 | `BASH_UTILS_TIMESTAMP_FORMAT` | `'%Y-%m-%d %H:%M:%S'` | Log timestamp format |
-| `BASH_UTILS_LOG_LEVEL` | `"INFO"` | Minimum log level (TRACE/DEBUG/INFO/WARNING/ERROR/CRITICAL) |
+| `BASH_UTILS_LOG_LEVEL` | `"INFO"` | Minimum log level (name: TRACE/DEBUG/INFO/SUCCESS/WARNING/ERROR/CRITICAL, or numeric: 0..6) |
 | `BASH_UTILS_NETWORK_TIMEOUT` | `5` | Network operation timeout in seconds |
 | `NO_COLOR` | `unset` | Disable color output when set to `1` |
+
+Log level numeric mapping: `TRACE=0`, `DEBUG=1`, `INFO=2`, `SUCCESS=3`, `WARNING=4`, `ERROR=5`, `CRITICAL=6`.
+Any log with a lower numeric level than `BASH_UTILS_LOG_LEVEL` is ignored.
 
 ### Example Configuration
 ```bash
@@ -337,8 +343,8 @@ source bash-utils.sh
 
 | Function | Description | Example |
 |----------|-------------|---------|
-| `log_trace(message...)` | Trace-level logging (debug mode only) | `log_trace "Variable value: $var"` |
-| `log_debug(message...)` | Debug-level logging (verbose mode) | `log_debug "Processing file: $file"` |
+| `log_trace(message...)` | Trace-level logging (requires `BASH_UTILS_DEBUG=true` and passes `BASH_UTILS_LOG_LEVEL`) | `log_trace "Variable value: $var"` |
+| `log_debug(message...)` | Debug-level logging (requires `BASH_UTILS_VERBOSE=true` or `BASH_UTILS_DEBUG=true`, and passes `BASH_UTILS_LOG_LEVEL`) | `log_debug "Processing file: $file"` |
 | `log_info(message...)` | Informational messages | `log_info "✅ Process completed"` |
 | `log_success(message...)` | Success messages (green) | `log_success "🎉 Deployment successful"` |
 | `log_warning(message...)` | Warning messages (yellow) | `log_warning "⚠️ Deprecated function"` |

@@ -10,6 +10,7 @@
 # Ensure internal arrays are declared with correct types
 declare -A _args_flags
 declare -A _args_values
+declare -A _args_values_list
 declare -a _args_positionals
 
 # -------------------------------------------------------------------------
@@ -25,14 +26,16 @@ readonly BASH_UTILS_ARGS_LOADED="true"
 # -------------------------------------------------------------------------
 # associative arrays for flags and values
 # Ensure associative arrays for Bash 4+
-unset _args_flags _args_values _args_positionals
+unset _args_flags _args_values _args_values_list _args_positionals
 if [[ "${BASH_VERSINFO:-0}" -ge 4 ]]; then
     declare -gA _args_flags
     declare -gA _args_values
+    declare -gA _args_values_list
     declare -ga _args_positionals
 else
     declare -ga _args_flags
     declare -ga _args_values
+    declare -ga _args_values_list
     declare -ga _args_positionals
 fi
 
@@ -87,6 +90,7 @@ args_parse() {
     # Reset any previous state
     _args_flags=()
     _args_values=()
+    _args_values_list=()
     _args_positionals=()
     local i=1
     while (( i <= $# )); do
@@ -99,9 +103,16 @@ args_parse() {
             local value="${arg#*=}"
             name="${name##--}"
             name="${name//-/_}"
-            _args_values["$name"]="$value"
-            ((i++))
-            continue
+            if [[ " ${_args_known_values[*]} " == *" $name "* ]]; then
+                _args_values["$name"]="$value"
+                if [[ -n ${_args_values_list[$name]+_} ]]; then
+                    _args_values_list["$name"]+=$'\x1f'"$value"
+                else
+                    _args_values_list["$name"]="$value"
+                fi
+                ((i++))
+                continue
+            fi
         fi
 
         # -------------------------------------------------------------
@@ -120,9 +131,14 @@ args_parse() {
             # is it a registered value‑option? then the next token is its value
             if [[ " ${_args_known_values[*]} " == *" $name "* ]]; then
                 local next_index=$((i + 1))
-                if (( next_index < $# )); then
+                if (( next_index <= $# )); then
                     local next="${!next_index}"
                     _args_values["$name"]="$next"
+                    if [[ -n ${_args_values_list[$name]+_} ]]; then
+                        _args_values_list["$name"]+=$'\x1f'"$next"
+                    else
+                        _args_values_list["$name"]="$next"
+                    fi
                     i=$((i + 2))
                     continue
                 fi
@@ -215,6 +231,27 @@ args_get_value() {
     return 0
 }
 
+# args_get_values <option> <array_name>
+#   Populate the supplied array variable with all values passed for an option.
+#   Repeated CLI options preserve order of appearance.
+args_get_values() {
+    local opt="${1##--}"
+    opt="${opt//-/_}"
+    local array_name="$2"
+    local -n result_ref="$array_name"
+    result_ref=()
+
+    if [[ -z "$array_name" ]]; then
+        return 1
+    fi
+
+    if [[ -n ${_args_values_list[$opt]+_} ]]; then
+        IFS=$'\x1f' read -r -a result_ref <<< "${_args_values_list[$opt]}"
+    fi
+
+    return 0
+}
+
 # args_get_positional <index>
 #   Retrieve the N‑th positional argument (0‑based).  Returns 1 if out of range.
 args_get_positional() {
@@ -230,4 +267,4 @@ args_get_positional() {
 # End of module – export the public symbols
 # -------------------------------------------------------------------------
 export -f args_set_flags args_set_values args_set_usage args_usage \
-            args_parse args_get_flag args_get_value args_get_positional
+            args_parse args_get_flag args_get_value args_get_values args_get_positional

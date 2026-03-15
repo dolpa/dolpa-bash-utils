@@ -184,7 +184,7 @@ args_parse() {
 # -------------------------------------------------------------------------
 
 # args_get_flag <flag> [fallback]
-#   Return 0/1 status indicating whether the flag is set.
+#   Return "true" or "false" indicating whether the flag is set.
 #   If the flag is not set, try the environment variable of the same name.
 #   The optional fallback value is returned as the function’s output.
 args_get_flag() {
@@ -200,10 +200,18 @@ args_get_flag() {
     # fall back to an environment variable with the same (upper‑cased) name
     local env_name="${flag^^}"
     if [[ -n ${!env_name-} ]]; then
-        printf '%s\n' "${!env_name}"
-        return 0
+        # Convert environment variable to proper boolean
+        local env_val="${!env_name}"
+        if [[ "$env_val" == "true" || "$env_val" == "1" || "$env_val" == "yes" || "$env_val" == "on" ]]; then
+            printf 'true\n'
+            return 0
+        else
+            printf 'false\n'
+            return 1
+        fi
     fi
 
+    printf 'false\n'
     return 1
 }
 

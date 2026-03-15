@@ -76,12 +76,12 @@ log_trace() {
 log_debug() {
     if [[ "${BASH_UTILS_VERBOSE:-false}" == "true" ]] || \
        [[ "${BASH_UTILS_DEBUG:-false}" == "true" ]]; then
-        _log "DEBUG" "${COLOR_BLUE:-}" "$*"
+        _log "DEBUG" "${COLOR_CYAN:-}" "$*"
     fi
 }
 
 log_info() {
-    _log "INFO" "${COLOR_BLUE:-}" "$*"
+    _log "INFO" "${COLOR_WHITE:-}" "$*"
 }
 
 log_success() {

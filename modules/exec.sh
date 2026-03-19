@@ -196,6 +196,49 @@ exec_wait() {
 }
 
 #===============================================================================
+# Helper: exec_wait_result
+#   Wait for a PID to finish and return the process exit code.
+# Arguments:
+#   $1 – PID
+#   $2 – timeout in seconds (optional, 0 = wait forever)
+# Returns:
+#   Child process exit code when available.
+#   124 on timeout.
+#   2 on invalid arguments.
+#===============================================================================
+exec_wait_result() {
+    local pid
+    pid=$1
+    local timeout
+    timeout=${2:-0}
+    local elapsed
+    elapsed=0
+
+    if [[ -z "$pid" || ! "$pid" =~ ^[0-9]+$ ]]; then
+        log_error "exec_wait_result: <pid> must be a numeric PID"
+        return 2
+    fi
+
+    if [[ -n "$timeout" && ! "$timeout" =~ ^[0-9]+$ ]]; then
+        log_error "exec_wait_result: <timeout> must be an integer >= 0"
+        return 2
+    fi
+
+    if (( timeout > 0 )); then
+        while kill -0 "$pid" 2>/dev/null; do
+            if (( elapsed >= timeout )); then
+                return 124
+            fi
+            sleep 1
+            (( elapsed++ ))
+        done
+    fi
+
+    wait "$pid"
+    return $?
+}
+
+#===============================================================================
 # Helper: exec_run_with_timeout
 #   Run a command but abort it if it runs longer than the supplied timeout.
 #   Uses GNU coreutils `timeout` if available; otherwise falls back to a
@@ -239,4 +282,4 @@ exec_run_with_timeout() {
 # End of exec.sh
 #===============================================================================
 
-export -f exec_run exec_run_capture exec_background exec_is_running exec_kill exec_wait exec_run_with_timeout 
+export -f exec_run exec_run_capture exec_background exec_is_running exec_kill exec_wait exec_wait_result exec_run_with_timeout 

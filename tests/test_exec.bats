@@ -146,6 +146,35 @@ setup() {
 }
 
 # --------------------------------------------------------------------
+#  exec_wait_result – wait for PID and propagate child exit code
+# --------------------------------------------------------------------
+@test "exec_wait_result returns child process exit code" {
+    bash -c 'sleep 0.2; exit 7' &
+    pid=$!
+
+    set +e
+    exec_wait_result "$pid" 3
+    result=$?
+    set -e
+
+    [ "$result" -eq 7 ]
+}
+
+@test "exec_wait_result returns 124 on timeout" {
+    sleep 5 &
+    pid=$!
+
+    set +e
+    exec_wait_result "$pid" 1
+    result=$?
+    set -e
+
+    exec_kill "$pid" 2>/dev/null || true
+
+    [ "$result" -eq 124 ]
+}
+
+# --------------------------------------------------------------------
 #  exec_run_with_timeout – run a command but abort it after N seconds
 # --------------------------------------------------------------------
 @test "exec_run_with_timeout aborts a command that exceeds the timeout" {

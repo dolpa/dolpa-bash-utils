@@ -247,3 +247,263 @@ teardown() {
     [ "${lines[2]}" = "b" ]
     [ "${lines[3]}" = "c" ]
 }
+
+#===============================================================================
+# STRING VALIDATION TESTS
+#===============================================================================
+
+@test "str_is_numeric returns true for numeric string" {
+    run str_is_numeric "12345"
+    [ "$status" -eq 0 ]
+}
+
+@test "str_is_numeric returns false for non-numeric string" {
+    run str_is_numeric "123abc"
+    [ "$status" -eq 1 ]
+    
+    run str_is_numeric "hello"
+    [ "$status" -eq 1 ]
+}
+
+@test "str_is_alpha returns true for alphabetic string" {
+    run str_is_alpha "hello"
+    [ "$status" -eq 0 ]
+    
+    run str_is_alpha "HELLO"
+    [ "$status" -eq 0 ]
+}
+
+@test "str_is_alpha returns false for non-alphabetic string" {
+    run str_is_alpha "hello123"
+    [ "$status" -eq 1 ]
+    
+    run str_is_alpha "hello world"
+    [ "$status" -eq 1 ]
+}
+
+@test "str_is_alnum returns true for alphanumeric string" {
+    run str_is_alnum "hello123"
+    [ "$status" -eq 0 ]
+    
+    run str_is_alnum "ABC123"
+    [ "$status" -eq 0 ]
+}
+
+@test "str_is_alnum returns false for non-alphanumeric string" {
+    run str_is_alnum "hello 123"
+    [ "$status" -eq 1 ]
+    
+    run str_is_alnum "hello@123"
+    [ "$status" -eq 1 ]
+}
+
+@test "str_is_email returns true for valid email addresses" {
+    run str_is_email "user@example.com"
+    [ "$status" -eq 0 ]
+    
+    run str_is_email "test.email+tag@example.org"
+    [ "$status" -eq 0 ]
+}
+
+@test "str_is_email returns false for invalid email addresses" {
+    run str_is_email "invalid.email"
+    [ "$status" -eq 1 ]
+    
+    run str_is_email "@example.com"
+    [ "$status" -eq 1 ]
+    
+    run str_is_email "user@"
+    [ "$status" -eq 1 ]
+}
+
+@test "str_is_url returns true for valid URLs" {
+    run str_is_url "https://example.com"
+    [ "$status" -eq 0 ]
+    
+    run str_is_url "http://example.com:8080/path"
+    [ "$status" -eq 0 ]
+}
+
+@test "str_is_url returns false for invalid URLs" {
+    run str_is_url "ftp://example.com"
+    [ "$status" -eq 1 ]
+    
+    run str_is_url "not-a-url"
+    [ "$status" -eq 1 ]
+}
+
+@test "str_is_ipv4 returns true for valid IPv4 addresses" {
+    run str_is_ipv4 "192.168.1.1"
+    [ "$status" -eq 0 ]
+    
+    run str_is_ipv4 "10.0.0.1"
+    [ "$status" -eq 0 ]
+}
+
+@test "str_is_ipv4 returns false for invalid IPv4 addresses" {
+    run str_is_ipv4 "192.168.1.256"
+    [ "$status" -eq 1 ]
+    
+    run str_is_ipv4 "192.168.1"
+    [ "$status" -eq 1 ]
+    
+    run str_is_ipv4 "not.an.ip.address"
+    [ "$status" -eq 1 ]
+}
+
+#===============================================================================
+# STRING SEARCH AND INDEX TESTS
+#===============================================================================
+
+@test "str_index returns correct index of substring" {
+    run str_index "hello world" "world"
+    [ "$status" -eq 0 ]
+    [ "$output" = "6" ]
+}
+
+@test "str_index returns -1 for non-existing substring" {
+    run str_index "hello world" "xyz"
+    [ "$status" -eq 0 ]
+    [ "$output" = "-1" ]
+}
+
+@test "str_rindex returns correct last index of substring" {
+    run str_rindex "hello world hello" "hello"
+    [ "$status" -eq 0 ]
+    [ "$output" = "12" ]
+}
+
+@test "str_count returns correct count of substring occurrences" {
+    run str_count "hello hello hello" "hello"
+    [ "$status" -eq 0 ]
+    [ "$output" = "3" ]
+}
+
+@test "str_count returns 0 for non-existing substring" {
+    run str_count "hello world" "xyz"
+    [ "$status" -eq 0 ]
+    [ "$output" = "0" ]
+}
+
+#===============================================================================
+# CASE CONVERSION TESTS
+#===============================================================================
+
+@test "str_to_snake converts to snake_case" {
+    run str_to_snake "HelloWorld"
+    [ "$status" -eq 0 ]
+    [ "$output" = "hello_world" ]
+    
+    run str_to_snake "hello world"
+    [ "$status" -eq 0 ]
+    [ "$output" = "hello_world" ]
+}
+
+@test "str_to_kebab converts to kebab-case" {
+    run str_to_kebab "HelloWorld"
+    [ "$status" -eq 0 ]
+    [ "$output" = "hello-world" ]
+    
+    run str_to_kebab "hello world"
+    [ "$status" -eq 0 ]
+    [ "$output" = "hello-world" ]
+}
+
+@test "str_to_camel converts to camelCase" {
+    run str_to_camel "hello world"
+    [ "$status" -eq 0 ]
+    [ "$output" = "helloWorld" ]
+    
+    run str_to_camel "hello-world"
+    [ "$status" -eq 0 ]
+    [ "$output" = "helloWorld" ]
+}
+
+@test "str_to_pascal converts to PascalCase" {
+    run str_to_pascal "hello world"
+    [ "$status" -eq 0 ]
+    [ "$output" = "HelloWorld" ]
+    
+    run str_to_pascal "hello-world"
+    [ "$status" -eq 0 ]
+    [ "$output" = "HelloWorld" ]
+}
+
+#===============================================================================
+# STRING ENCODING AND ESCAPING TESTS
+#===============================================================================
+
+@test "str_url_encode encodes URL special characters" {
+    run str_url_encode "hello world"
+    [ "$status" -eq 0 ]
+    [ "$output" = "hello%20world" ]
+}
+
+@test "str_url_decode decodes URL encoded characters" {
+    run str_url_decode "hello%20world"
+    [ "$status" -eq 0 ]
+    [ "$output" = "hello world" ]
+}
+
+@test "str_shell_escape escapes shell special characters" {
+    run str_shell_escape "rm -rf /"
+    [ "$status" -eq 0 ]
+    # Should contain escaped characters
+    [[ "$output" == *"\\"* ]] || [[ "$output" == *"'"* ]]
+}
+
+@test "str_html_escape escapes HTML special characters" {
+    run str_html_escape "<script>alert('test')</script>"  
+    [ "$status" -eq 0 ]
+    [ "$output" = "&lt;script&gt;alert(&#39;test&#39;)&lt;/script&gt;" ]
+}
+
+@test "str_html_unescape unescapes HTML entities" {
+    run str_html_unescape "&lt;strong&gt;bold&lt;/strong&gt;"
+    [ "$status" -eq 0 ]
+    [ "$output" = "<strong>bold</strong>" ]
+}
+
+#===============================================================================
+# STRING COMPARISON TESTS
+#===============================================================================
+
+@test "str_equals_ignore_case returns true for case-insensitive match" {
+    run str_equals_ignore_case "Hello" "hello"
+    [ "$status" -eq 0 ]
+    
+    run str_equals_ignore_case "WORLD" "world"
+    [ "$status" -eq 0 ]
+}
+
+@test "str_equals_ignore_case returns false for non-matching strings" {
+    run str_equals_ignore_case "hello" "world"
+    [ "$status" -eq 1 ]
+}
+
+@test "str_version_compare compares version strings correctly" {
+    # Test if 1.2.3 < 1.2.10
+    run str_version_compare "1.2.3" "1.2.10"
+    [ "$status" -eq 0 ]
+    
+    # Test if 2.0.0 >= 1.9.9 (should return 1)
+    run str_version_compare "2.0.0" "1.9.9"
+    [ "$status" -eq 1 ]
+}
+
+#===============================================================================
+# STRING GENERATION TESTS
+#===============================================================================
+
+@test "str_random generates random string of correct length" {
+    run str_random 8
+    [ "$status" -eq 0 ]
+    [ "${#output}" -eq 8 ]
+}
+
+@test "str_random generates different strings on multiple calls" {
+    local first second
+    first=$(str_random 10)
+    second=$(str_random 10)
+    [ "$first" != "$second" ]
+}

@@ -695,21 +695,29 @@ str_version_compare() {
 str_random() {
     local length="${1:-8}"
     local charset="${2:-a-zA-Z0-9}"
-    local result
+    local result=""
 
-    if command -v shuf >/dev/null 2>&1; then
-        result=$(tr -dc "$charset" < /dev/urandom | head -c "$length")
-    elif command -v openssl >/dev/null 2>&1; then
-        result=$(openssl rand -base64 $((length * 2)) | tr -dc "$charset" | head -c "$length")
-    else
-        # Fallback using bash RANDOM
+    # Use a fixed-size buffer to avoid SIGPIPE from piping infinite /dev/urandom
+    # through head -c, which causes pipefail exits and empty output in CI.
+    if command -v openssl >/dev/null 2>&1; then
+        # openssl rand produces a finite buffer – no SIGPIPE risk
+        result=$(openssl rand -base64 $((length * 4)) | tr -dc "$charset")
+    elif [[ -r /dev/urandom ]]; then
+        # dd reads a fixed block – no SIGPIPE risk
+        result=$(dd if=/dev/urandom bs=$((length * 4)) count=1 2>/dev/null | tr -dc "$charset")
+    fi
+
+    # If the filtered result is still too short (restrictive charset), fall back
+    if [[ ${#result} -lt $length ]]; then
         local chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        result=""
         local i
         for ((i=0; i<length; i++)); do
             result+="${chars:RANDOM%${#chars}:1}"
         done
     fi
-    printf '%s\n' "$result"
+
+    printf '%s\n' "${result:0:$length}"
 }
 
 export -f str_upper str_lower str_title str_length str_trim str_ltrim str_rtrim \

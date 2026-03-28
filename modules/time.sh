@@ -276,9 +276,9 @@ sleep_until() {
     fi
 }
 
-#===============================================================================
+# ------------------------------------------------------------------
 # TIMEZONE AND LOCALE TIME FUNCTIONS
-#===============================================================================
+# ------------------------------------------------------------------
 
 # Convert time between timezones
 # Usage: converted=$(time_convert_timezone "2023-12-25 10:00:00" "UTC" "America/New_York")
@@ -357,9 +357,9 @@ time_list_timezones() {
     fi
 }
 
-#===============================================================================
+# ------------------------------------------------------------------
 # DATE ARITHMETIC AND MANIPULATION
-#===============================================================================
+# ------------------------------------------------------------------
 
 # Add/subtract days to/from an epoch timestamp
 # Usage: new_epoch=$(time_add_days 1672531200 5)
@@ -552,9 +552,9 @@ time_diff_days() {
     fi
 }
 
-#===============================================================================
+# ----------------------------------------------------------------------
 # SCHEDULING AND CRON UTILITIES
-#===============================================================================
+# ----------------------------------------------------------------------
 
 # Check if a time matches a cron expression
 # Usage: if time_matches_cron "0 9 * * 1-5" [epoch]; then ...; fi
@@ -657,9 +657,9 @@ time_wait_until() {
     done
 }
 
-#===============================================================================
+# ----------------------------------------------------------------------
 # TIME FORMATTING AND PARSING
-#===============================================================================
+# ----------------------------------------------------------------------
 
 # Format epoch time with custom format
 # Usage: formatted=$(time_format_custom 1640419200 "%B %d, %Y at %I:%M %p")
@@ -795,9 +795,9 @@ time_validate_date() {
     esac
 }
 
-#===============================================================================
+# ----------------------------------------------------------------------
 # TIMEZONE MANAGEMENT
-#===============================================================================
+# ----------------------------------------------------------------------
 
 # Get the current system timezone identifier
 # Usage: tz=$(time_get_timezone)
@@ -843,9 +843,9 @@ time_set_timezone() {
     fi
 }
 
-#===============================================================================
+# ------------------------------------------------------------------
 # DURATION FORMATTING AND PARSING
-#===============================================================================
+# ------------------------------------------------------------------
 
 # Format a number of seconds as a compact human-readable duration
 # Usage: text=$(time_format_duration 3661)  # → "1h1m1s"
@@ -884,9 +884,9 @@ time_parse_duration() {
     echo "$total"
 }
 
-#===============================================================================
+# ------------------------------------------------------------------
 # DATE VALIDATION AND EPOCH FORMATTING
-#===============================================================================
+# ------------------------------------------------------------------
 
 # Validate that a YYYY-MM-DD date string is a real calendar date
 # Usage: if time_is_valid_date "2024-02-29"; then ...; fi
@@ -923,9 +923,9 @@ time_format_date() {
     _time_format_epoch "$epoch" "$format" "utc"
 }
 
-#===============================================================================
+# ------------------------------------------------------------------
 # WEEKDAY / WEEKEND HELPERS
-#===============================================================================
+# ------------------------------------------------------------------
 
 # Return 0 if an epoch timestamp falls on a weekday (Mon-Fri)
 # Usage: if time_is_weekday 1672617600; then ...; fi
@@ -967,9 +967,9 @@ time_is_weekend() {
     [[ "$dow" -ge 6 ]]
 }
 
-#===============================================================================
+# ------------------------------------------------------------------
 # NEXT CRON RUN
-#===============================================================================
+# ------------------------------------------------------------------
 
 # Calculate the next epoch at which a cron expression will match
 # Usage: next=$(time_next_cron_run "0 0 * * *")
@@ -1003,15 +1003,17 @@ time_next_cron_run() {
     return 1
 }
 
-export -f time_now time_now_iso8601_utc time_now_iso8601_local
-export -f time_epoch time_epoch_ms time_format_epoch time_epoch_to_iso8601 time_parse_iso8601
-export -f time_add_seconds time_diff_seconds time_seconds_to_human time_benchmark sleep_until
-export -f time_convert_timezone time_get_world_clock time_list_timezones
-export -f time_add_days time_add_hours time_add_minutes time_add_weeks time_add_months
-export -f time_get_day_of_week time_get_week_number time_diff_days
-export -f time_matches_cron time_next_cron_run time_wait_until
-export -f time_format_custom time_parse_flexible time_get_relative time_validate_date
-export -f time_get_timezone time_set_timezone
-export -f time_format_duration time_parse_duration
-export -f time_is_valid_date time_format_date
-export -f time_is_weekday time_is_weekend
+export -f time_now time_now_iso8601_utc time_now_iso8601_local \
+        time_epoch time_epoch_ms time_format_epoch time_epoch_to_iso8601 time_parse_iso8601 \
+        time_add_seconds time_diff_seconds time_seconds_to_human time_benchmark sleep_until \
+        time_epoch time_epoch_ms time_format_epoch time_epoch_to_iso8601 time_parse_iso8601 \
+        time_add_seconds time_diff_seconds time_seconds_to_human time_benchmark sleep_until \
+        time_convert_timezone time_get_world_clock time_list_timezones \
+        time_add_days time_add_hours time_add_minutes time_add_weeks time_add_months \
+        time_get_day_of_week time_get_week_number time_diff_days \
+        time_matches_cron time_next_cron_run time_wait_until \
+        time_format_custom time_parse_flexible time_get_relative time_validate_date \
+        time_get_timezone time_set_timezone \
+        time_format_duration time_parse_duration \
+        time_is_valid_date time_format_date \
+        time_is_weekday time_is_weekend

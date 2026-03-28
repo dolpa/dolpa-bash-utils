@@ -587,7 +587,7 @@ encrypt_file() {
         return 1
     fi
 
-    if openssl enc -aes-256-cbc -in "$input_file" -out "$output_file" -pass pass:"$password" 2>/dev/null; then
+    if openssl enc -aes-256-cbc -pbkdf2 -in "$input_file" -out "$output_file" -pass pass:"$password" 2>/dev/null; then
         log_success "File encrypted: $output_file"
         return 0
     else
@@ -623,7 +623,7 @@ decrypt_file() {
         return 1
     fi
 
-    if openssl enc -aes-256-cbc -d -in "$encrypted_file" -out "$output_file" -pass pass:"$password" 2>/dev/null; then
+    if openssl enc -aes-256-cbc -d -pbkdf2 -in "$encrypted_file" -out "$output_file" -pass pass:"$password" 2>/dev/null; then
         log_success "File decrypted: $output_file"
         return 0
     else
@@ -653,7 +653,7 @@ encrypt_string() {
     fi
 
     local result
-    result=$(printf '%s' "$string" | openssl enc -aes-256-cbc -a -pass pass:"$password" 2>/dev/null)
+    result=$(printf '%s' "$string" | openssl enc -aes-256-cbc -pbkdf2 -a -pass pass:"$password" 2>/dev/null)
     local exit_code=$?
     
     if [[ $exit_code -eq 0 && -n "$result" ]]; then
@@ -686,7 +686,7 @@ decrypt_string() {
     fi
 
     local result
-    result=$(printf '%s' "$encrypted" | openssl enc -aes-256-cbc -d -a -pass pass:"$password" 2>/dev/null)
+    result=$(printf '%s\n' "$encrypted" | openssl enc -aes-256-cbc -d -pbkdf2 -a -pass pass:"$password" 2>/dev/null)
     local exit_code=$?
     
     if [[ $exit_code -eq 0 ]]; then

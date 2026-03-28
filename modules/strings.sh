@@ -359,9 +359,9 @@ str_shorten() {
     fi
 }
 
-#===============================================================================
+# ----------------------------------------------------------------------
 # STRING VALIDATION FUNCTIONS
-#===============================================================================
+# ----------------------------------------------------------------------
 
 # Check if string contains only numeric characters
 # Usage: if str_is_numeric "123"; then ...; fi
@@ -436,9 +436,9 @@ str_is_ipv4() {
     return 1
 }
 
-#===============================================================================
+# ----------------------------------------------------------------------
 # STRING SEARCH AND INDEX FUNCTIONS
-#===============================================================================
+# ----------------------------------------------------------------------
 
 # Find the index of first occurrence of substring
 # Usage: index=$(str_index "hello world" "world")
@@ -502,9 +502,9 @@ str_count() {
     echo "$count"
 }
 
-#===============================================================================
+# ----------------------------------------------------------------------
 # CASE CONVERSION FUNCTIONS
-#===============================================================================
+# ----------------------------------------------------------------------
 
 # Convert string to snake_case
 # Usage: snake=$(str_to_snake "HelloWorld")
@@ -573,9 +573,9 @@ str_to_pascal() {
     echo "$result"
 }
 
-#===============================================================================
+# ----------------------------------------------------------------------
 # STRING ENCODING AND ESCAPING FUNCTIONS
-#===============================================================================
+# ----------------------------------------------------------------------
 
 # URL encode a string
 # Usage: encoded=$(str_url_encode "hello world")
@@ -651,9 +651,9 @@ str_html_unescape() {
     echo "$string"
 }
 
-#===============================================================================
+# ----------------------------------------------------------------------
 # STRING COMPARISON FUNCTIONS
-#===============================================================================
+# ----------------------------------------------------------------------
 
 # Case-insensitive string comparison
 # Usage: if str_equals_ignore_case "Hello" "hello"; then ...; fi
@@ -695,20 +695,21 @@ str_version_compare() {
 str_random() {
     local length="${1:-8}"
     local charset="${2:-a-zA-Z0-9}"
-    
+    local result
+
     if command -v shuf >/dev/null 2>&1; then
-        tr -dc "$charset" < /dev/urandom | head -c "$length"
+        result=$(tr -dc "$charset" < /dev/urandom | head -c "$length")
     elif command -v openssl >/dev/null 2>&1; then
-        openssl rand -base64 $((length * 2)) | tr -dc "$charset" | head -c "$length"
+        result=$(openssl rand -base64 $((length * 2)) | tr -dc "$charset" | head -c "$length")
     else
         # Fallback using bash RANDOM
-        local result="" chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        local chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         local i
         for ((i=0; i<length; i++)); do
             result+="${chars:RANDOM%${#chars}:1}"
         done
-        echo "$result"
     fi
+    printf '%s\n' "$result"
 }
 
 export -f str_upper str_lower str_title str_length str_trim str_ltrim str_rtrim \

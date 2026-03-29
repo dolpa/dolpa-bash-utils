@@ -454,9 +454,9 @@ get_public_ip() {
 # Returns: list of local IP addresses, one per line
 get_local_ips() {
     if command_exists ip; then
-        ip addr show | grep -oP 'inet \K[\d.]+' | grep -v "127.0.0.1"
+        ip addr show | grep -oP 'inet \K[\d.]+'
     elif command_exists ifconfig; then
-        ifconfig | grep -oE 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -oE '([0-9]*\.){3}[0-9]*' | grep -v "127.0.0.1"
+        ifconfig | grep -oE 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -oE '([0-9]*\.){3}[0-9]*'
     elif command_exists hostname; then
         hostname -I 2>/dev/null | tr ' ' '\n' | grep -v "^$"
     else
@@ -531,9 +531,9 @@ get_mac_address() {
     fi
 }
 
-#===============================================================================
+# ------------------------------------------------------------------
 # PORT SCANNING AND MONITORING
-#===============================================================================
+# ------------------------------------------------------------------
 
 # Scan a range of ports on a host
 # Usage: scan_ports "192.168.1.1" 80 85
@@ -610,9 +610,9 @@ is_port_available() {
     fi
 }
 
-#===============================================================================
+# ------------------------------------------------------------------
 # DNS AND LOOKUP FUNCTIONS
-#===============================================================================
+# ------------------------------------------------------------------
 
 # Perform DNS lookup for different record types
 # Usage: records=$(dns_lookup "example.com" "A")
@@ -712,9 +712,38 @@ reverse_dns_lookup() {
     fi
 }
 
-#===============================================================================
+# Get MX records for a domain
+# Usage: get_mx_records "example.com"
+# Arguments:
+#   $1 - domain name
+# Returns: MX records via stdout, exit 1 if none found
+get_mx_records() {
+    local domain="$1"
+
+    if [[ -z "$domain" ]]; then
+        log_error "get_mx_records: missing domain argument"
+        return 1
+    fi
+
+    if ! command_exists dig; then
+        log_error "get_mx_records: dig is required but not available"
+        return 1
+    fi
+
+    local result
+    result=$(dig +short "$domain" MX 2>/dev/null)
+    if [[ -z "$result" ]]; then
+        log_error "get_mx_records: no MX records found for '$domain'"
+        return 1
+    fi
+
+    echo "$result"
+    return 0
+}
+
+# ------------------------------------------------------------------
 # NETWORK TESTING AND MONITORING
-#===============================================================================
+# ------------------------------------------------------------------
 
 # Test network connectivity to multiple hosts
 # Usage: test_connectivity "8.8.8.8" "1.1.1.1" "google.com"
@@ -806,9 +835,9 @@ network_speed_test() {
     fi
 }
 
-#===============================================================================
+# ------------------------------------------------------------------
 # SSL/TLS AND CERTIFICATE FUNCTIONS
-#===============================================================================
+# ------------------------------------------------------------------
 
 # Check SSL certificate information
 # Usage: cert_info=$(check_ssl_cert "google.com" 443)
@@ -873,13 +902,13 @@ ssl_cert_days_until_expiry() {
     fi
 }
 
-#===============================================================================
+# ------------------------------------------------------------------
 # NETWORK CONFIGURATION AND ROUTING
-#===============================================================================
+# ------------------------------------------------------------------
 
-#===============================================================================
+# ------------------------------------------------------------------
 # ADDITIONAL MISSING FUNCTIONS
-#===============================================================================
+# ------------------------------------------------------------------
 
 # Get information about a network interface
 # Usage: get_interface_info "eth0"
@@ -1166,14 +1195,10 @@ delete_route() {
 export -f ping_host resolve_ip is_port_open download_file check_url get_public_ip \
           get_local_ips get_default_gateway list_network_interfaces get_mac_address \
           scan_ports get_listening_ports is_port_available \
-          dns_lookup reverse_dns_lookup dns_reverse_lookup \
+          dns_lookup reverse_dns_lookup dns_reverse_lookup get_mx_records \
           test_connectivity measure_latency network_speed_test \
           check_ssl_cert ssl_cert_days_until_expiry get_ssl_cert_info \
           show_routing_table add_route delete_route \
           get_interface_info get_interface_stats \
           wait_for_port check_internet_connection \
           flush_dns_cache test_bandwidth monitor_connection get_network_usage
-
-#=====================================================================
-# END OF FILE
-#=====================================================================

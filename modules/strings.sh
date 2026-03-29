@@ -696,7 +696,7 @@ str_random() {
     local length="${1:-8}"
     local charset="${2:-a-zA-Z0-9}"
     local result=""
-
+    
     # Use a fixed-size buffer to avoid SIGPIPE from piping infinite /dev/urandom
     # through head -c, which causes pipefail exits and empty output in CI.
     if command -v openssl >/dev/null 2>&1; then
@@ -716,7 +716,6 @@ str_random() {
             result+="${chars:RANDOM%${#chars}:1}"
         done
     fi
-
     printf '%s\n' "${result:0:$length}"
 }
 

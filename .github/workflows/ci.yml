@@ -218,6 +218,9 @@ jobs:
 
     runs-on: ubuntu-latest
     
+    permissions:
+      contents: read
+    
     steps:
     # 1. Checkout the repo (including tags)
     - name: Checkout repository

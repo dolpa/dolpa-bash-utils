@@ -697,9 +697,9 @@ str_random() {
     local charset="${2:-a-zA-Z0-9}"
     
     if command -v shuf >/dev/null 2>&1; then
-        tr -dc "$charset" < /dev/urandom | head -c "$length"
+        LC_ALL=C tr -dc "$charset" < /dev/urandom | head -c "$length"
     elif command -v openssl >/dev/null 2>&1; then
-        openssl rand -base64 $((length * 2)) | tr -dc "$charset" | head -c "$length"
+        openssl rand -base64 $((length * 2)) | LC_ALL=C tr -dc "$charset" | head -c "$length"
     else
         # Fallback using bash RANDOM
         local result="" chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

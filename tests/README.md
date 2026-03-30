@@ -19,9 +19,77 @@ This directory contains comprehensive BATS (Bash Automated Testing System) tests
   - Special formatting functions (header, section, step)
 
 - **`test_crypto.bats`** - Tests for the crypto utilities module (`crypto.sh`)
-  - SHA-256 checksum generation and verification
-  - UUID v4 generation
-  - Random string generation
+  - SHA-256, SHA-1, MD5, SHA-512 checksum generation and verification
+  - Base64, URL, and hexadecimal encoding/decoding functions
+  - UUID v4 generation and random string generation
+  - Secure password generation and entropy calculation
+  - File and string encryption/decryption with OpenSSL
+  - HMAC signature generation and verification
+
+- **`test_time.bats`** - Tests for the time utilities module (`time.sh`)
+  - ISO-8601 and epoch timestamp helpers
+  - Epoch formatting/parsing and conversion functions
+  - Time arithmetic operations (add/subtract seconds, minutes, hours, days)
+  - Duration formatting and parsing utilities
+  - Timezone conversion and management functions
+  - Date validation and relative time calculations
+  - Cron pattern matching and scheduling functions
+  - Weekday/weekend detection functions
+  - Sleep-until behavior (no-op when already past)
+
+- **`test_validation.bats`** - Tests for the validation module (`validation.sh`)
+  - Core validation: command existence, file/directory validation
+  - Network validation: IPv4, IPv6, and MAC address format validation
+  - Data format validation: dates, phone numbers, JSON format validation
+  - Numeric validation: range checking and positive number validation
+  - System validation: process checking, disk space validation, username/password strength
+  - Email, URL, and port validation functions
+  - Environment variable validation
+  - Permission checking functions
+
+- **`test_strings.bats`** - Tests for the string processing module (`strings.sh`)
+  - Basic string operations: case conversion, trimming, length calculation
+  - String search and manipulation: contains, replace, split, join operations
+  - Advanced string functions: prefix/suffix removal, padding, reversal
+  - String validation: email, URL, numeric, alphanumeric checks
+  - Case conversion utilities: snake_case, kebab-case, camelCase conversion
+  - URL and HTML encoding/decoding functions
+  - Text processing: truncation, word counting, character extraction
+  - String comparison and version comparison utilities
+  - Random string generation with customizable parameters
+
+- **`test_network.bats`** - Tests for the network utilities module (`network.sh`)
+  - Core network functions: ping, hostname resolution, port checking
+  - Interface management: local IP enumeration, gateway detection, interface statistics
+  - Port scanning and connectivity testing with timeout handling
+  - DNS operations: lookup, reverse lookup, MX record retrieval
+  - SSL certificate validation and information extraction
+  - Network configuration: routing, DNS cache management
+  - Bandwidth testing and network usage monitoring
+  - Internet connectivity and reachability testing
+  - File downloads and URL validation
+
+- **`test_system.bats`** - Tests for the system detection and monitoring module (`system.sh`)
+  - OS name/version detection and hardware system detection
+  - System architecture and virtualization detection
+  - CPU, memory, and disk information retrieval
+  - Performance monitoring: CPU usage, memory usage, disk usage
+  - System load averages and uptime information
+  - System health checks and resource limit validation
+  - Process management: process information, service control
+  - Resource monitoring and top process listing
+  - Cross-platform compatibility testing
+
+- **`test_http.bats`** - Tests for the HTTP client wrapper module (`http.sh`)
+  - Core HTTP methods: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS
+  - Generic HTTP request handling with customizable methods
+  - Authentication: Basic auth, Bearer tokens, API key headers
+  - File operations: file uploads, multipart form data handling
+  - Response processing: header extraction, JSON parsing, status text conversion
+  - HTTP utilities: retry logic, success checking, redirect following
+  - Status code validation and error handling
+  - Mock framework integration for reliable testing
+  - Timeout handling and connection testing
 
 - **`test_time.bats`** - Tests for the time utilities module (`time.sh`)
   - ISO-8601 and epoch helpers

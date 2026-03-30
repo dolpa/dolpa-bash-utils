@@ -91,12 +91,6 @@ This directory contains comprehensive BATS (Bash Automated Testing System) tests
   - Mock framework integration for reliable testing
   - Timeout handling and connection testing
 
-- **`test_time.bats`** - Tests for the time utilities module (`time.sh`)
-  - ISO-8601 and epoch helpers
-  - Epoch formatting/parsing
-  - Duration/diff helpers
-  - Sleep-until behavior (no-op when already past)
-
 - **`test_retry.bats`** - Tests for the retry/backoff module (`retry.sh`)
   - Fixed-attempt retries (`retry_cmd`)
   - Exponential backoff (`retry_with_backoff`)
@@ -117,23 +111,11 @@ This directory contains comprehensive BATS (Bash Automated Testing System) tests
   - Service existence and running-state checks
   - Restart and enable command wrappers
 
-- **`test_validation.bats`** - Tests for the validation module (`validation.sh`)
-  - Command existence checking
-  - File and directory validation
-  - Email, URL, and port validation
-  - System name validation
-  - Permission checking functions
-
 - **`test_files.bats`** - Tests for the file operations module (`files.sh`)
   - File backup creation
   - Directory creation and management
   - Path resolution utilities
   - Script location helpers
-
-- **`test_system.bats`** - Tests for the system detection module (`system.sh`)
-  - OS name and version detection
-  - Hardware system detection
-  - Cross-platform compatibility
 
 - **`test_utils.bats`** - Tests for the utilities module (`utils.sh`)
   - Time and byte formatting
@@ -146,6 +128,79 @@ This directory contains comprehensive BATS (Bash Automated Testing System) tests
   - Module loading verification
   - Cross-module functionality
   - Complete library functionality
+
+- **`test_ansi.bats`** - Tests for the ANSI formatting module (`ansi.sh`)
+  - Module loading and guard variable verification
+  - Color support detection (`ansi_supports_color`)
+  - All text color functions with colors disabled and enabled
+  - Bright color variants and background color functions
+  - Text style functions (bold, dim, italic, underline, blink, reverse, strikethrough)
+  - Composite functions (success, error, warning, info, header, code)
+  - Utility functions: `ansi_strip`, `ansi_length`, `ansi_reset`, `ansi_test_colors`
+  - `NO_COLOR` and `BASH_UTILS_FORCE_COLOR` environment variable handling
+
+- **`test_applications.bats`** - Tests for the application management module (`applications.sh`)
+  - Module loading verification
+  - `app_is_installed` for existing and non-existing commands
+  - `app_install_docker` privilege checks and already-installed detection
+  - `app_remove_docker` behaviour when Docker is and isn't installed
+  - Package manager detection and install/remove dispatch (mocked)
+
+- **`test_args.bats`** - Tests for the argument parsing module (`args.sh`)
+  - Module loading and guard flag verification
+  - `args_parse` correctly extracts flags, values, and positional arguments
+  - Environment variable fallback for flags (`args_get_flag`)
+  - Default value handling for options (`args_get_value`)
+  - Usage string storage and retrieval (`args_usage`)
+
+- **`test_env.bats`** - Tests for the environment variable module (`env.sh`)
+  - Module loading, flag setting, and multiple-sourcing prevention
+  - `env_require` succeeds for set variables, fails for missing ones
+  - `env_default` sets defaults without overwriting existing values
+  - `env_bool` normalises truthy/falsy values to `true`/`false`
+  - `env_from_file` loads well-formed `.env` files, skips comments and blank lines, rejects malformed lines
+
+- **`test_exec.bats`** - Tests for the process execution module (`exec.sh`)
+  - Module loading and multiple-sourcing prevention
+  - `exec_run` success and failure exit codes
+  - `exec_run_capture` capturing stdout and stderr independently
+  - `exec_background` launching background jobs and returning PIDs
+  - `exec_kill`, `exec_wait`, `exec_wait_result` process control
+  - `exec_run_with_timeout` timeout enforcement
+
+- **`test_filesystem.bats`** - Tests for the filesystem operations module (`filesystem.sh`)
+  - Module loading and guard variable verification
+  - Temporary file and directory creation (`create_temp_file`, `create_temp_dir`)
+  - File metadata retrieval: size, modification time, permissions, owner, group
+  - Path type detection (`is_path_file`, `is_path_directory`, `is_path_symlink`, etc.)
+  - File operations: copy, move, delete, touch, write, append, truncate, symlink, hardlink
+  - Permission operations: `chmod_file`, `chown_file`, `chgrp_file`
+  - Directory listing and recursive file finding
+
+- **`test_prompts.bats`** - Tests for the interactive prompts module (`prompts.sh`)
+  - Module loading and guard flag verification
+  - `prompt_input` with typed value, default value, and whitespace trimming
+  - `prompt_password` hidden input handling
+  - `prompt_confirm` and `prompt_confirm_yes` yes/no handling
+  - `prompt_menu` selection with mock input
+  - `prompt_number` numeric input and range validation
+  - `prompt_pause` wait-for-enter behaviour
+
+- **`test_sysctl_install.bats`** - Integration tests for the dolpa-sysctl `install.sh` script
+  - Profile listing includes expected system names (supports legacy filename typo)
+  - Dry-run install does not require root privileges
+  - Auto-detection can be overridden via `SYSCTL_SYSTEM_NAME` environment variable
+  - `detect` command prints a profile name or fails clearly
+  - Skipped automatically when `dolpa-sysctl` repo is not present
+
+- **`test_system-mount.bats`** - Tests for the system mount module (`system-mount.sh`)
+  - Module loading, flag setting, and multiple-sourcing prevention
+  - `is_mounted` returns success for `/` and failure for non-mount paths
+  - `get_mount_point` resolves paths to their mount point
+  - `mount_tmpfs` and `unmount_path` fail gracefully without root
+  - Base directory configuration (`mount_set_base_dir`, `mount_get_base_dir`)
+  - Verbose and dry-run mode flags
+  - CLI helpers (`mount_cli_mount`, `mount_cli_umount`, `mount_cli_status`, `mount_cli_list`)
 
 ### Helper Files
 
@@ -223,13 +278,35 @@ bats --filter "config" tests/
 
 ### Current Test Coverage
 
-- **Configuration Module**: 8+ tests covering version info, colors, and module loading
-- **Logging Module**: 15+ tests covering all log levels and formatting functions
-- **Validation Module**: 20+ tests covering all validation functions and edge cases
-- **File Operations**: 10+ tests covering backup, directory creation, and path utilities
-- **System Detection**: 4+ tests covering OS detection (environment-dependent)
-- **Utilities Module**: 15+ tests covering formatting, generation, and utility functions
-- **Integration**: 8+ tests covering complete library functionality
+**542 tests across 25 modules**
+
+| Module | File | Tests |
+|--------|------|------:|
+| ANSI Formatting | `test_ansi.bats` | 42 |
+| Application Management | `test_applications.bats` | 17 |
+| Argument Parsing | `test_args.bats` | 6 |
+| Configuration | `test_config.bats` | 9 |
+| Cryptography | `test_crypto.bats` | 28 |
+| Environment Variables | `test_env.bats` | 15 |
+| Process Execution | `test_exec.bats` | 13 |
+| File Operations | `test_files.bats` | 13 |
+| Filesystem Utilities | `test_filesystem.bats` | 44 |
+| HTTP Client | `test_http.bats` | 36 |
+| Integration | `test_integration.bats` | 9 |
+| Logging | `test_logging.bats` | 21 |
+| Network Utilities | `test_network.bats` | 33 |
+| Package Management | `test_packages.bats` | 12 |
+| Interactive Prompts | `test_prompts.bats` | 17 |
+| Retry / Backoff | `test_retry.bats` | 8 |
+| Service Management | `test_services.bats` | 8 |
+| String Processing | `test_strings.bats` | 65 |
+| Sysctl Install (integration) | `test_sysctl_install.bats` | 4 |
+| System Mount | `test_system-mount.bats` | 10 |
+| System Detection | `test_system.bats` | 34 |
+| Time Utilities | `test_time.bats` | 37 |
+| Signal / Trap Handling | `test_trap.bats` | 5 |
+| Utilities | `test_utils.bats` | 12 |
+| Validation | `test_validation.bats` | 44 |
 
 ### Test Categories
 

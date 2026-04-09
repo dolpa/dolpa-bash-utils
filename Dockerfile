@@ -13,6 +13,7 @@ RUN apt-get update \
      unzip \
      bash \
      procps \
+     jq \
   && rm -rf /var/lib/apt/lists/*
 
 # Install bats-core so run-tests.sh won't try to build/install it itself

@@ -58,10 +58,12 @@ main() {
 	fi
 
 	# Propagate the container's exit code.
+	# Mount the current directory over the baked-in copy so code changes are
+	# always reflected without needing a Docker rebuild.
 	if (( use_tty )) && [[ -t 0 ]]; then
-		docker run -ti --rm "$tag"
+		docker run -ti --rm -v "$PWD:/opt/bash-utils" "$tag"
 	else
-		docker run -i --rm "$tag"
+		docker run -i --rm -v "$PWD:/opt/bash-utils" "$tag"
 	fi
 }
 

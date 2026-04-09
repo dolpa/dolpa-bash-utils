@@ -43,7 +43,10 @@ bash-utils/
 │   ├── 📝 logging.sh          # Comprehensive logging system
 │   ├── 🌐 network.sh          # Network operations
 │   ├── 🌐 http.sh             # HTTP client wrapper (curl / wget)
-│   ├── 📦 packages.sh         # Package management abstraction
+│   ├── 🤖 ai.sh               # AI / Local-LLM helpers (Ollama, OpenAI, Anthropic)
+│   ├── 🗂️ json.sh             # JSON and YAML utilities (jq / yq wrappers)
+│   ├── � notify.sh           # Notification utilities (desktop, Slack, Teams, Telegram, email)
+│   ├── �📦 packages.sh         # Package management abstraction
 │   ├── 💬 prompts.sh          # Interactive user prompts
 │   ├── 🔁 retry.sh            # Retry helpers and backoff logic
 │   ├── 🪤 trap.sh             # Signal handling & cleanup helpers
@@ -78,6 +81,9 @@ bash-utils/
 - 🚀 **Application Management** - Install, remove, and manage applications across different Linux distributions (Docker support included)
 - 🔤 **String Manipulation** - Comprehensive string processing utilities including case conversion, trimming, and validation
 - 💬 **User Interaction** - Interactive prompts, confirmations, password input, and menu selections
+- 🤖 **AI / Local-LLM Tools** - Ollama model management (list, pull, update, delete, prompt, chat) and cloud AI API wrappers for OpenAI and Anthropic
+- 🗂️ **JSON & YAML Utilities** - jq-backed JSON reading, writing, merging, querying and validation; yq-backed YAML read/write/convert
+- 🔔 **Notifications** - send alerts to desktop, Slack, Microsoft Teams, Telegram, email, or any webhook; log fallback always available
 - 🛠️ **Utility Functions** - Retry logic, human-readable formatting, random string generation
 - ⚠️ **Signal Handling** - Graceful script termination and cleanup
 - 🎯 **Argument Parsing** - Robust command-line argument parsing
@@ -815,6 +821,141 @@ fi
 | `with_tempdir(cmd...)` | Run command inside a temp directory | `with_tempdir bash -c "pwd"` |
 | `is_semver(version)` | Check semantic version format | `is_semver "$version" && echo "Valid"` |
 | `compare_versions(v1, v2)` | Compare semantic versions | `compare_versions "1.2.0" "1.1.0"` |
+
+### 🤖 AI / Local-LLM Tools
+
+Wrappers for local LLM inference (Ollama) and cloud AI APIs (OpenAI, Anthropic). Requires `curl`. `jq` is recommended for reliable JSON extraction but not mandatory.
+
+#### Ollama — local model management
+
+| Function | Description | Example |
+|----------|-------------|---------|
+| `ollama_is_running()` | Check if the Ollama daemon is reachable | `ollama_is_running && echo "ready"` |
+| `ollama_list_models()` | Print installed model names (one per line) | `ollama_list_models` |
+| `ollama_pull_if_missing(model)` | Pull model only when not already installed | `ollama_pull_if_missing llama3` |
+| `ollama_update_all()` | Re-pull every installed model for latest version | `ollama_update_all` |
+| `ollama_delete(model)` | Remove a locally installed model | `ollama_delete mistral:latest` |
+| `ollama_prompt(model, prompt)` | One-shot generation; print response | `ollama_prompt llama3 "What is bash?"` |
+| `ollama_chat(model, message)` | One-shot chat message; print reply | `ollama_chat llama3 "Explain cgroups"` |
+
+Environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `BASH_UTILS_AI_OLLAMA_HOST` | Ollama daemon base URL | `http://localhost:11434` |
+| `BASH_UTILS_AI_TIMEOUT` | curl timeout (seconds) for all AI calls | `60` |
+| `BASH_UTILS_AI_OLLAMA_DEFAULT_MODEL` | Default model for `ai_summarize_file` | `llama3` |
+
+#### OpenAI
+
+| Function | Description | Example |
+|----------|-------------|---------|
+| `ai_openai_chat(prompt, [model])` | Chat Completions API; print reply | `ai_openai_chat "Summarise this log"` |
+
+Requires `OPENAI_API_KEY` to be set. Optional: `BASH_UTILS_AI_OPENAI_DEFAULT_MODEL` (default `gpt-4o-mini`).
+
+#### Anthropic
+
+| Function | Description | Example |
+|----------|-------------|---------|
+| `ai_anthropic_chat(prompt, [model])` | Messages API; print reply | `ai_anthropic_chat "Explain this error"` |
+
+Requires `ANTHROPIC_API_KEY` to be set. Optional: `BASH_UTILS_AI_ANTHROPIC_DEFAULT_MODEL` (default `claude-3-haiku-20240307`).
+
+#### Utility
+
+| Function | Description | Example |
+|----------|-------------|---------|
+| `ai_detect_backend()` | Return first available backend name | `backend=$(ai_detect_backend)` |
+| `ai_summarize_file(file, [backend])` | Send file contents to AI for a summary | `ai_summarize_file /var/log/syslog` |
+
+`ai_detect_backend` probes in priority order: Ollama → OpenAI → Anthropic. Returns `ollama`, `openai`, `anthropic`, or `none`.
+
+### 🗂️ JSON and YAML Utilities
+
+Wrappers around `jq` (JSON) and `yq` (YAML). `jq` is required for most `json_*` functions; `json_pretty`, `json_compact`, and `json_validate` fall back to `python3` when `jq` is absent. `yq` v4+ is required for all `yaml_*` functions.
+
+#### JSON
+
+| Function | Description | Example |
+|----------|-------------|---------|
+| `json_validate(input)` | Return 0 if input is valid JSON | `json_validate "$json" && echo "ok"` |
+| `json_get(input, path)` | Extract value at jq path (raw output) | `name=$(json_get data.json '.name')` |
+| `json_set(file, path, value, [--raw])` | Update file in-place; `--raw` for non-string literals | `json_set data.json '.version' '2.0'` |
+| `json_delete(file, path)` | Delete key at path from file in-place | `json_delete data.json '.deprecated'` |
+| `json_merge(file1, file2)` | Deep-merge file2 into file1; print to stdout | `json_merge base.json override.json` |
+| `json_keys(input, [path])` | List keys of object at path (default: root) | `json_keys data.json '.config'` |
+| `json_length(input, [path])` | Count elements in array or object | `len=$(json_length '[1,2,3]')` |
+| `json_has(input, path)` | Return 0 if path exists and is non-null | `json_has data.json '.optional' \|\| echo "missing"` |
+| `json_pretty(input)` | Pretty-print with configurable indent | `json_pretty compact.json` |
+| `json_compact(input)` | Minify to a single line | `json_compact pretty.json` |
+| `json_query(input, filter)` | Run arbitrary jq filter; raw output | `json_query data.json '.items[].name'` |
+| `json_from_args(KEY=VALUE...)` | Build flat JSON object; values auto-typed | `json_from_args name=Alice age=30 active=true` |
+
+`json_get` and `json_validate` accept either a file path or a raw JSON string as the first argument.
+
+Environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `BASH_UTILS_JSON_INDENT` | Pretty-print indent (spaces) | `2` |
+
+#### YAML
+
+| Function | Description | Example |
+|----------|-------------|---------|
+| `yaml_to_json(file)` | Convert YAML file to JSON (stdout) | `yaml_to_json config.yaml` |
+| `json_to_yaml(file)` | Convert JSON file to YAML (stdout) | `json_to_yaml data.json` |
+| `yaml_validate(file)` | Return 0 if file is valid YAML | `yaml_validate config.yaml && echo "ok"` |
+| `yaml_get(file, path)` | Extract value at yq path | `host=$(yaml_get config.yaml '.database.host')` |
+| `yaml_set(file, path, value)` | Update YAML file in-place | `yaml_set config.yaml '.database.port' '5433'` |
+
+Requires `yq` v4+ (`brew install yq` / `snap install yq`).
+
+---
+
+### 🔔 Notification Utilities
+
+Send alerts through multiple channels from any Bash script.
+
+```bash
+source bash-utils.sh
+
+notify_desktop  "Build done"   "All 661 tests passed"
+notify_slack    "Deploy finished on $HOST"
+notify_teams    "Pipeline failed on $BRANCH"
+notify_telegram "Backup completed" "$BOT_TOKEN" "$CHAT_ID"
+notify_email    "Nightly Report" "$(cat report.txt)" "ops@example.com"
+notify_webhook  "https://hook.example.com/event" '{"event":"deploy","ok":true}'
+notify_log      info "Deployment complete"
+```
+
+#### Notification Functions
+
+| Function | Description | Example |
+|----------|-------------|---------|
+| `notify_desktop(title, msg [, icon])` | Native desktop pop-up (notify-send / osascript) | `notify_desktop "Done" "Tests passed"` |
+| `notify_slack(msg [, webhook_url])` | Post to a Slack Incoming Webhook | `notify_slack "Deploy ok" "$WEBHOOK"` |
+| `notify_teams(msg [, webhook_url])` | Post a Teams MessageCard via Connector webhook | `notify_teams "Build failed"` |
+| `notify_telegram(msg [, token, chat_id])` | Send via Telegram Bot API | `notify_telegram "Backup done" "$TOKEN" "$CHAT"` |
+| `notify_email(subject, body [, to])` | Send email via system `mail` | `notify_email "Report" "$(cat r.txt)"` |
+| `notify_webhook(url, payload [, method])` | POST arbitrary JSON to any HTTP endpoint | `notify_webhook "$URL" '{"ok":true}'` |
+| `notify_log(level, msg)` | Emit a log entry (always available) | `notify_log warning "Disk low"` |
+
+#### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `BASH_UTILS_NOTIFY_SLACK_WEBHOOK` | Default Slack incoming webhook URL | _(empty)_ |
+| `BASH_UTILS_NOTIFY_TEAMS_WEBHOOK` | Default MS Teams connector URL | _(empty)_ |
+| `BASH_UTILS_NOTIFY_TELEGRAM_BOT_TOKEN` | Telegram bot token | _(empty)_ |
+| `BASH_UTILS_NOTIFY_TELEGRAM_CHAT_ID` | Telegram target chat / channel ID | _(empty)_ |
+| `BASH_UTILS_NOTIFY_EMAIL_TO` | Default email recipient | _(empty)_ |
+| `BASH_UTILS_NOTIFY_EMAIL_FROM` | Sender address passed to `mail -r` | _(empty)_ |
+| `BASH_UTILS_NOTIFY_TIMEOUT` | curl timeout in seconds | `10` |
+| `BASH_UTILS_NOTIFY_FALLBACK_LOG` | Log via `log_info` when primary tool absent | `true` |
+
+> **Tool requirements**: `curl` for Slack / Teams / Telegram / webhook; `notify-send` (Linux) or `osascript` (macOS) for desktop; `mail` for email. When a tool is missing and `BASH_UTILS_NOTIFY_FALLBACK_LOG=true`, the message is logged instead of silently dropped.
 
 ### 🔐 Crypto Utilities
 

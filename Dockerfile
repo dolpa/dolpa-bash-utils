@@ -21,12 +21,15 @@ RUN git clone https://github.com/bats-core/bats-core.git /tmp/bats-core \
   && /tmp/bats-core/install.sh /usr/local \
   && rm -rf /tmp/bats-core
 
-# Create workdir and copy repository into the image
+# Create workdir 
 WORKDIR /opt/bash-utils
+
+# Copy repository into the image (this will be overridden by volume mount in run-tests-docker.sh)
 COPY . /opt/bash-utils
 
 # Make sure scripts are executable
 RUN chmod +x /opt/bash-utils/run-tests.sh || true
 
-# Default command: run the project's test runner
+# Default command: run the project's test runner with any passed arguments
+# This allows for: docker run bash-utils [test-arguments]
 ENTRYPOINT ["/bin/bash", "/opt/bash-utils/run-tests.sh"]

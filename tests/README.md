@@ -117,6 +117,17 @@ This directory contains comprehensive BATS (Bash Automated Testing System) tests
   - Path resolution utilities
   - Script location helpers
 
+- **`test_system.bats`** - Tests for the system detection and monitoring module (`system.sh`)
+  - OS name/version detection and hardware system detection
+  - System architecture and virtualization detection
+  - CPU, memory, and disk information retrieval
+  - Performance monitoring: CPU usage, memory usage, disk usage
+  - System load averages and uptime information
+  - System health checks and resource limit validation
+  - Process management: process information, service control
+  - Resource monitoring and top process listing
+  - Cross-platform compatibility testing
+
 - **`test_utils.bats`** - Tests for the utilities module (`utils.sh`)
   - Time and byte formatting
   - Random string generation
@@ -128,6 +139,51 @@ This directory contains comprehensive BATS (Bash Automated Testing System) tests
   - Module loading verification
   - Cross-module functionality
   - Complete library functionality
+
+- **`test_json.bats`** - Tests for the JSON and YAML utilities module (`json.sh`)
+  - Module loading, guard flag verification, and multiple-sourcing prevention
+  - All public `json_*` and `yaml_*` function definitions verified
+  - `json_validate` with valid/invalid strings and file paths; python3 fallback
+  - `json_get` for top-level, nested, array index, and raw string inputs
+  - `json_set` string values, `--raw` typed values (number, boolean), nested keys
+  - `json_delete` removes keys and verifies sibling keys remain intact
+  - `json_merge` deep merge: overlay wins on conflicts, nested objects preserved
+  - `json_keys`, `json_length`, `json_has` with string and file inputs
+  - `json_pretty` / `json_compact` roundtrip consistency
+  - `json_query` arbitrary jq filters (map, select, extract)
+  - `json_from_args` auto-types integers, booleans, null, and string values
+  - YAML functions with mock `yq`: `yaml_to_json`, `json_to_yaml`, `yaml_validate`, `yaml_get`, `yaml_set`
+  - Graceful failure when `jq` or `yq` unavailable (tested via `_JSON_HAS_JQ`/`_JSON_HAS_YQ` flags)
+
+- **`test_notify.bats`** - Tests for the notification utilities module (`notify.sh`)
+  - Module loading, guard flag verification, and multiple-sourcing prevention
+  - All public `notify_*` function definitions verified
+  - `_notify_escape_json` escapes double-quotes, backslashes, newlines, and tabs
+  - `notify_desktop` via mock `notify-send` (title, message, icon passthrough) and `osascript` fallback
+  - `notify_desktop` fails gracefully when neither tool is present; logs when fallback enabled
+  - `notify_slack` missing-webhook and missing-curl failures; correct URL and payload via mock curl
+  - `notify_teams` MessageCard JSON format verification; missing-webhook and missing-curl errors
+  - `notify_telegram` missing-token and missing-chat-ID guards; correct Telegram API URL construction
+  - `notify_email` via mock `mail` — subject, recipient, body, and `-r` From header verified
+  - `notify_webhook` correct URL, default POST method, custom HTTP method, missing-curl error
+  - `notify_log` for all levels (info, success, warning, warn alias, error, debug), unknown-level error
+  - Fallback log behaviour controlled by `BASH_UTILS_NOTIFY_FALLBACK_LOG`
+  - JSON escaping of special characters in Slack payloads
+
+- **`test_ai.bats`** - Tests for the AI / Local-LLM helpers module (`ai.sh`)
+  - Module loading, guard flag verification, and multiple-sourcing prevention
+  - All public function definitions verified (`ollama_*`, `ai_*`)
+  - `ollama_is_running` reachability checks (success and failure)
+  - `ollama_list_models` via CLI and REST API fallback when CLI absent
+  - `ollama_pull_if_missing` skips existing models, pulls missing ones
+  - `ollama_update_all` updates all installed models, no-op on empty list
+  - `ollama_delete` calls the `ollama rm` CLI, fails gracefully without CLI
+  - `ollama_prompt` and `ollama_chat` return mocked response text
+  - `ai_openai_chat` key-present and missing-key behaviour
+  - `ai_anthropic_chat` key-present and missing-key behaviour
+  - `ai_detect_backend` priority order (ollama → openai → anthropic → none)
+  - `ai_summarize_file` auto-detection, explicit backends, missing-file error
+  - All network calls and CLI commands handled via mock binaries in `$PATH`
 
 - **`test_ansi.bats`** - Tests for the ANSI formatting module (`ansi.sh`)
   - Module loading and guard variable verification
@@ -278,10 +334,13 @@ bats --filter "config" tests/
 
 ### Current Test Coverage
 
-**542 tests across 25 modules**
+**726 tests across 28 modules** (including `test_ai.bats`, `test_json.bats`, and `test_notify.bats`)
 
 | Module | File | Tests |
 |--------|------|------:|
+| AI / Local-LLM | `test_ai.bats` | 45 |
+| JSON & YAML Utilities | `test_json.bats` | 74 |
+| Notifications | `test_notify.bats` | 65 |
 | ANSI Formatting | `test_ansi.bats` | 42 |
 | Application Management | `test_applications.bats` | 17 |
 | Argument Parsing | `test_args.bats` | 6 |
